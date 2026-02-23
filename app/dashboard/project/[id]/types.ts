@@ -2,19 +2,24 @@ export const FONT = `ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI
 
 export type Item = {
   id: string
-  type: 'text' | 'pdf' | 'doc'
-  label: string | null
-  content: string | null
+  type: string
+  label: string | null      // mapped from page_title
+  content: string | null    // mapped from text (the clipped content)
+  note: string | null       // mapped from note (user's own notes)
   url: string | null
   file_url: string | null
   file_name: string | null
+  file_type: string | null
+  urls: unknown | null      // jsonb
+  tags: string[]
+  followups: unknown | null // jsonb
+  pinned: boolean
+  archived: boolean
   saved_at: string
+  last_opened_at: string | null
+  last_edited?: string
   project_id: string
   user_id: string
-  tags?: string[]
-  pinned?: boolean
-  archived?: boolean
-  last_edited?: string
 }
 
 export type Project = { id: string; title: string; description: string | null }
@@ -23,19 +28,24 @@ export type ChatMessage = { role: 'user' | 'assistant'; text: string }
 export function norm(raw: Record<string, unknown>): Item {
   return {
     id: raw.id as string,
-    type: (['text', 'pdf', 'doc'].includes(raw.type as string) ? raw.type : 'text') as Item['type'],
+    type: (raw.type as string) || 'text',
     label: (raw.page_title || raw.label || null) as string | null,
-    content: (raw.content || raw.note || raw.text || null) as string | null,
+    content: (raw.text || null) as string | null,           // clipped text
+    note: (raw.note || null) as string | null,              // user note
     url: (raw.url || null) as string | null,
     file_url: (raw.file_url || null) as string | null,
     file_name: (raw.file_name || null) as string | null,
-    saved_at: raw.saved_at as string,
-    project_id: raw.project_id as string,
-    user_id: raw.user_id as string,
+    file_type: (raw.file_type || null) as string | null,
+    urls: (raw.urls || null),
     tags: (raw.tags as string[]) || [],
+    followups: (raw.followups || null),
     pinned: (raw.pinned as boolean) || false,
     archived: (raw.archived as boolean) || false,
+    saved_at: raw.saved_at as string,
+    last_opened_at: (raw.last_opened_at || null) as string | null,
     last_edited: (raw.last_edited || raw.saved_at) as string,
+    project_id: raw.project_id as string,
+    user_id: raw.user_id as string,
   }
 }
 
