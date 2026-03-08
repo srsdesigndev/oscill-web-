@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { FONT, Item, ageLabel } from './types'
-import { ConfirmDelete } from './ui'
+import { Item, ageLabel } from './types'
 
 function loadQuill(cb: () => void) {
   if (!document.getElementById('ql-css')) {
@@ -17,100 +16,216 @@ function loadQuill(cb: () => void) {
     const s = document.createElement('script')
     s.id = 'ql-js'
     s.src = 'https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js'
-    s.async = true
-    s.onload = cb
+    s.async = true; s.onload = cb
     document.body.appendChild(s)
   } else {
     document.getElementById('ql-js')!.addEventListener('load', cb, { once: true })
   }
 }
 
-function isHTML(str: string): boolean {
-  return /<[a-z][\s\S]*>/i.test(str)
+function isHTML(s: string) { return /<[a-z][\s\S]*>/i.test(s) }
+function contentToHTML(c: string | null) {
+  if (!c) return '<p><br></p>'
+  return isHTML(c) ? c : `<p>${c.replace(/\n/g, '</p><p>')}</p>`
 }
 
-// The separator text we scan for when splitting back out on save
-const SEP = '——— Note ———'
+const URL_RE = /https?:\/\/[^\s"'<>\]]+/gi
 
-/** Combine clip + note into a single HTML string for Quill */
-function buildHTML(content: string | null, note: string | null): string {
-  const toHTML = (s: string) =>
-    isHTML(s) ? s : `<p>${s.replace(/\n/g, '</p><p>')}</p>`
+function defaultTitle(i: number) {
+  return `Untitled ${String(i + 1).padStart(2, '0')}`
+}
 
-  const clipPart = content ? toHTML(content) : '<p><br></p>'
-  const notePart = note ? toHTML(note) : '<p><br></p>'
+function hostname(url: string) {
+  try { return new URL(url).hostname.replace(/^www\./, '') }
+  catch { return url.slice(0, 30) }
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+const PageIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+    <path d="M3 2h7l3 3v9H3V2z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+    <path d="M10 2v3h3" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+  </svg>
+)
+const DotsIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+    <circle cx="3"  cy="8" r="1.2" fill="currentColor"/>
+    <circle cx="8"  cy="8" r="1.2" fill="currentColor"/>
+    <circle cx="13" cy="8" r="1.2" fill="currentColor"/>
+  </svg>
+)
+
+// ── Dot menu ──────────────────────────────────────────────────────────────────
+function DotMenu({ onAskAI, onCopy, onDelete }: {
+  onAskAI: () => void
+  onCopy: () => void
+  onDelete: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const h = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [open])
+
+  const menuItem = (label: string, icon: string, onClick: () => void, danger = false) => (
+    <button key={label} onClick={() => { onClick(); setOpen(false) }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+        padding: '6px 10px', border: 'none', background: 'none',
+        fontSize: 12.5, fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+        textAlign: 'left', color: danger ? '#e23e2b' : '#37352f',
+        borderRadius: 4, transition: 'background 0.1s',
+      }}
+      onMouseEnter={e => e.currentTarget.style.background = danger ? 'rgba(227,62,43,0.06)' : 'rgba(55,53,47,0.06)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+    >
+      <span style={{ fontSize: 13 }}>{icon}</span>{label}
+    </button>
+  )
 
   return (
-    clipPart +
-    `<p><br></p>` +
-    `<p><strong>${SEP}</strong></p>` +
-    `<p><br></p>` +
-    notePart
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button onClick={e => { e.stopPropagation(); setOpen(s => !s) }}
+        style={{
+          background: open ? 'rgba(55,53,47,0.08)' : 'none', border: 'none',
+          cursor: 'pointer', padding: '2px 4px', borderRadius: 4,
+          display: 'flex', alignItems: 'center', color: 'rgba(55,53,47,0.4)',
+          transition: 'background 0.1s, color 0.1s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(55,53,47,0.08)'; e.currentTarget.style.color = '#37352f' }}
+        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(55,53,47,0.4)' } }}
+      >
+        <DotsIcon />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', right: 0, top: '100%', marginTop: 4,
+          background: '#fff', border: '1px solid #e9e9e7', borderRadius: 6,
+          boxShadow: 'rgba(15,15,15,0.1) 0 0 0 1px, rgba(15,15,15,0.12) 0 4px 16px -2px',
+          zIndex: 100, minWidth: 160, padding: 3,
+        }}>
+          {menuItem('Ask Oscil AI', '✦', onAskAI)}
+          {menuItem('Copy text', '⎘', onCopy)}
+          <div style={{ height: 1, background: '#e9e9e7', margin: '3px 0' }} />
+          {menuItem('Delete', '✕', onDelete, true)}
+        </div>
+      )}
+    </div>
   )
 }
 
-/** Split plain text back into content + note using the separator */
-function splitText(fullText: string): { content: string | null; note: string | null } {
-  const idx = fullText.indexOf(SEP)
-  if (idx === -1) return { content: fullText.trim() || null, note: null }
-  return {
-    content: fullText.slice(0, idx).trim() || null,
-    note: fullText.slice(idx + SEP.length).trim() || null,
-  }
-}
-
+// ── Main ──────────────────────────────────────────────────────────────────────
 export function QuillBlock({
-  item,
-  onSave,
-  onPin,
-  onArchive,
-  selected,
-  onToggleSelect,
-  isNew,
+  item, index, onSave, onPin, onArchive, onAskAI, isNew, selected, onToggleSelect,
 }: {
   item: Item
+  index: number
   onSave: (u: Partial<Item>) => void
   onPin: () => void
   onArchive: () => void
-  selected: boolean
-  onToggleSelect: () => void
+  onAskAI: (question?: string, withContext?: boolean) => void
   isNew?: boolean
+  selected?: boolean
+  onToggleSelect?: () => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const labelRef = useRef<HTMLInputElement>(null)
+  const labelRef     = useRef<HTMLInputElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quillRef = useRef<any>(null)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const quillRef     = useRef<any>(null)
+  const timer        = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Track which URLs we've already probed so we don't re-probe on every keystroke
+  const probedRef    = useRef<Set<string>>(new Set())
 
-  const [label, setLabel] = useState(item.label || '')
-  const [saved, setSaved] = useState(false)
-  const [active, setActive] = useState(false)
-  const [showDel, setShowDel] = useState(false)
+  const autoTitle = defaultTitle(index)
+  const [label, setLabel]       = useState(item.label || autoTitle)
+  const [saved, setSaved]       = useState(false)
+  const [active, setActive]     = useState(false)
+  const [expanded, setExpanded] = useState(isNew ?? false)
+  const [hovered, setHovered]   = useState(false)
 
-  function schedule(l: string, content: string | null, note: string | null) {
+  useEffect(() => { setLabel(item.label || autoTitle) }, [item.label]) // eslint-disable-line
+
+  function schedule(l: string, content: string | null) {
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => {
-      onSave({ label: l || null, content, note })
+      onSave({ label: (l === autoTitle ? null : l) || null, content, note: null })
       setSaved(true)
       setTimeout(() => setSaved(false), 1200)
     }, 700)
   }
 
+  /**
+   * Scan editor text for raw URLs not yet processed.
+   * Immediately embed each as a Quill image — the browser will render it
+   * if it can (including CORS-restricted CDN images like LinkedIn, which
+   * block JS probes but load fine as <img> tags).
+   * If the image fails to load, the onerror handler in the editor CSS
+   * replaces it with a styled link chip via a data attribute.
+   */
+  function tryEmbedUrls() {
+    const quill = quillRef.current
+    if (!quill) return
+    const text = quill.getText()
+    const matches = Array.from(new Set(text.match(URL_RE) || [])) as string[]
+    const fresh = matches.filter(u => !probedRef.current.has(u))
+    if (!fresh.length) return
+
+    fresh.forEach(url => {
+      probedRef.current.add(url)
+      // Small delay so Quill finishes its own text-change processing first
+      setTimeout(() => {
+        const currentText = quill.getText()
+        const idx = currentText.indexOf(url)
+        if (idx === -1) return
+        quill.deleteText(idx, url.length)
+        quill.insertEmbed(idx, 'image', url)
+        quill.setSelection(idx + 1, 0)
+        // After embed, find the <img> and attach onerror to replace with link
+        setTimeout(() => {
+          const root = quill.root as HTMLElement
+          const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img')).filter(i => i.src === url)
+          imgs.forEach(img => {
+            if (img.dataset.handled) return
+            img.dataset.handled = '1'
+            img.onerror = () => {
+              // Image failed (broken/restricted) — replace with a link chip span
+              const chip = document.createElement('a')
+              chip.href = url
+              chip.target = '_blank'
+              chip.rel = 'noopener noreferrer'
+              chip.className = 'ql-url-chip'
+              chip.textContent = (() => { try { return new URL(url).hostname.replace(/^www\./, '') } catch { return url.slice(0, 40) } })()
+              img.replaceWith(chip)
+              // Re-save since DOM changed
+              const html = quill.root.innerHTML
+              const t = quill.getText()
+              schedule(labelRef.current?.value ?? label, t.trim() ? html : null)
+            }
+          })
+        }, 50)
+      }, 10)
+    })
+  }
+
   useEffect(() => {
+    if (!expanded) return
     loadQuill(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const Q = (window as any).Quill
-      if (!Q) return
-      const container = containerRef.current
-      if (!container) return
-
-      container.innerHTML = ''
+      if (!Q || !containerRef.current) return
+      containerRef.current.innerHTML = ''
       const el = document.createElement('div')
-      container.appendChild(el)
+      containerRef.current.appendChild(el)
 
       const quill = new Q(el, {
         theme: 'snow',
-        placeholder: 'Start writing...',
+        placeholder: 'Write something… or type !ask to chat',
         modules: {
           toolbar: [
             ['bold', 'italic', 'underline'],
@@ -120,145 +235,193 @@ export function QuillBlock({
         },
       })
 
-      // Inject clip + separator + note as one HTML blob
-      quill.clipboard.dangerouslyPasteHTML(buildHTML(item.content, item.note))
+      quill.clipboard.dangerouslyPasteHTML(contentToHTML(item.content))
 
       quill.on('text-change', () => {
-        const { content, note } = splitText(quill.getText())
-        schedule(labelRef.current?.value ?? label, content, note)
+        const text = quill.getText()
+
+        // ── !ask command parser ───────────────────────────────────────────
+        // Syntax: !ask <question> [-this|-free]
+        // -this  = pass this clip as context (default)
+        // -free  = no context, fresh question
+        const cmdLine = text.split('\n').find((l: string) => l.trimStart().startsWith('!ask'))
+        if (cmdLine !== undefined) {
+          const inner     = cmdLine.replace(/^!ask\s*/i, '')
+          const freeFlag  = /\s-free$/i.test(inner)
+          const thisFlag  = /\s-this$/i.test(inner)
+          const question  = inner.replace(/\s-(free|this)$/i, '').trim()
+          const withCtx   = !freeFlag // default to -this unless -free explicitly set
+          setTimeout(() => {
+            const cur = quill.getText()
+            const idx = cur.indexOf(cmdLine.trimStart())
+            if (idx !== -1) {
+              const end = cur.indexOf('\n', idx)
+              quill.deleteText(idx, end === -1 ? cur.length - idx : end - idx + 1)
+            }
+            onAskAI(question || undefined, withCtx)
+          }, 80)
+          return
+        }
+        // ─────────────────────────────────────────────────────────────────
+
+        const html    = quill.root.innerHTML
+        const content = text.trim() ? html : null
+        schedule(labelRef.current?.value ?? label, content)
+        tryEmbedUrls()
       })
 
       quill.on('selection-change', (range: unknown) => setActive(!!range))
       quillRef.current = quill
     })
-
     return () => {
       if (containerRef.current) containerRef.current.innerHTML = ''
       quillRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id])
-
-  const border = active || isNew
-    ? '2px solid #6366f1'
-    : selected
-    ? '2px solid #18181b'
-    : '1.5px solid #e4e4e7'
-
-  const shadow = active || isNew
-    ? '0 0 0 3px rgba(99,102,241,0.1)'
-    : selected
-    ? '0 0 0 3px rgba(24,24,27,0.08)'
-    : '0 1px 3px rgba(0,0,0,0.06)'
+  }, [expanded, item.id]) // eslint-disable-line
 
   const lastEdited = item.last_edited || item.saved_at
+  const rowBg = hovered ? 'rgba(55,53,47,0.03)' : 'transparent'
+
+  function copyContent() {
+    const text = quillRef.current?.getText() || item.content || ''
+    navigator.clipboard.writeText(text)
+  }
 
   return (
-    <div style={{
-      background: '#fff',
-      border,
-      borderRadius: 6,
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      transition: 'border-color 0.15s, box-shadow 0.15s',
-      boxShadow: shadow,
-    }}>
-
-      {/* ── Header ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '7px 10px 6px', borderBottom: '1px solid #f4f4f5',
-        flexShrink: 0, background: '#fff',
-      }}>
-        <button
-          onClick={onToggleSelect}
-          title="Select for Oscil AI"
-          style={{
-            width: 14, height: 14, borderRadius: 3, flexShrink: 0, cursor: 'pointer',
-            border: selected ? '2px solid #18181b' : '1.5px solid #d4d4d8',
-            background: selected ? '#18181b' : '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.1s',
-          }}
-        >
-          {selected && <span style={{ color: '#fff', fontSize: 8, fontWeight: 900 }}>✓</span>}
-        </button>
-
-        <input
-          ref={labelRef}
-          type="text"
-          value={label}
-          onChange={e => {
-            setLabel(e.target.value)
-            const { content, note } = splitText(quillRef.current?.getText() || '')
-            schedule(e.target.value, content, note)
-          }}
-          placeholder="Your title goes here"
-          style={{
-            flex: 1, border: 'none', outline: 'none', background: 'transparent',
-            fontSize: 9.5, fontWeight: 600, color: '#18181b', fontFamily: FONT,
-          }}
-        />
-
-        {item.url && (
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={item.url}
-            style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#6366f1', textDecoration: 'none', fontSize: 11,
-              width: 20, height: 20, borderRadius: 4,
-              border: '1px solid #c7d2fe', background: '#eef2ff',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#e0e7ff' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#eef2ff' }}
-          >
-            ↗
-          </a>
-        )}
-
-        <button
-          onClick={() => setShowDel(true)}
-          title="Delete"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '0 1px', flexShrink: 0, color: '#d4d4d8',
-            fontSize: 10, lineHeight: 1, fontFamily: FONT,
-          }}
-        >
-          ✕
-        </button>
-      </div>
-
-      {showDel && (
-        <ConfirmDelete
-          onConfirm={() => { setShowDel(false); onArchive() }}
-          onCancel={() => setShowDel(false)}
-        />
-      )}
-
-      {/* ── Single Quill editor ── */}
-      <div
-        ref={containerRef}
-        className="block-editor"
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-      />
-
-      {/* ── Footer ── */}
-      <div style={{
-        padding: '3px 10px 4px', borderTop: '1px solid #f9f9f9',
-        flexShrink: 0, display: 'flex', alignItems: 'center',
-        background: '#fafafa',
-      }}>
-        {saved
-          ? <span style={{ fontSize: 9, color: '#10b981', fontWeight: 700, fontFamily: FONT }}>✓ saved</span>
-          : <span style={{ fontSize: 9, color: '#c4c4c4', fontFamily: FONT }}>edited {ageLabel(lastEdited)}</span>
+    <>
+      <style>{`
+        .notion-quill .ql-toolbar {
+          border: none !important; border-bottom: 1px solid #e9e9e7 !important;
+          padding: 4px 8px !important; background: #f7f6f3 !important; border-radius: 0 !important;
         }
+        .notion-quill .ql-container {
+          border: none !important; font-family: 'Inter', -apple-system, sans-serif !important;
+          font-size: 14px !important; color: #37352f !important;
+        }
+        .notion-quill .ql-editor {
+          padding: 10px 16px 12px !important; min-height: 100px !important;
+          line-height: 1.65 !important; color: #37352f !important;
+        }
+        .notion-quill .ql-editor.ql-blank::before {
+          color: rgba(55,53,47,0.3) !important; font-style: normal !important; left: 16px !important;
+        }
+        .notion-quill .ql-editor img {
+          max-width: 100% !important; border-radius: 4px !important;
+          display: block !important; margin: 6px 0 !important;
+          border: 1px solid #e9e9e7 !important; cursor: pointer !important;
+        }
+        /* Fallback chip when image fails to load */
+        .notion-quill .ql-editor a.ql-url-chip {
+          display: inline-flex !important; align-items: center !important;
+          font-size: 12px !important; color: rgba(55,53,47,0.6) !important;
+          background: rgba(55,53,47,0.05) !important; border: 1px solid #e9e9e7 !important;
+          border-radius: 4px !important; padding: 2px 8px !important;
+          text-decoration: none !important; font-family: 'Inter', sans-serif !important;
+          transition: background 0.1s !important;
+        }
+        .notion-quill .ql-editor a.ql-url-chip:hover {
+          background: rgba(55,53,47,0.09) !important; color: #37352f !important;
+        }
+        .notion-quill .ql-toolbar button:hover .ql-stroke,
+        .notion-quill .ql-toolbar button.ql-active .ql-stroke { stroke: #37352f !important; }
+        .notion-quill .ql-toolbar button:hover .ql-fill,
+        .notion-quill .ql-toolbar button.ql-active .ql-fill { fill: #37352f !important; }
+        .notion-quill .ql-snow .ql-picker { color: #37352f !important; }
+        .notion-quill .ql-snow.ql-toolbar button { border-radius: 3px !important; }
+        .notion-quill .ql-snow.ql-toolbar button:hover { background: rgba(55,53,47,0.08) !important; }
+
+        .quill-expand-area { overflow: hidden; transition: max-height 0.22s ease, opacity 0.15s ease; }
+        .quill-expand-area.open   { max-height: 900px; opacity: 1; }
+        .quill-expand-area.closed { max-height: 0; opacity: 0; pointer-events: none; }
+        .clip-row-title:focus { outline: none; }
+      `}</style>
+
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ borderRadius: 5, background: selected ? 'rgba(108,99,255,0.05)' : rowBg, transition: 'background 0.1s', outline: selected ? '1px solid rgba(108,99,255,0.15)' : 'none' }}
+      >
+        {/* Row header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px 6px 8px', minHeight: 34 }}>
+          {/* Checkbox — visible on hover or when selected */}
+          {(hovered || selected) && onToggleSelect ? (
+            <button
+              onClick={e => { e.stopPropagation(); onToggleSelect() }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, display: 'flex', alignItems: 'center' }}
+            >
+              <div style={{
+                width: 14, height: 14, borderRadius: 3, flexShrink: 0,
+                border: selected ? 'none' : '1.5px solid #d0d0ce',
+                background: selected ? '#6C63FF' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.12s',
+              }}>
+                {selected && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3l2 2 4-4" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </div>
+            </button>
+          ) : (
+            <div style={{ width: 14, flexShrink: 0 }} />
+          )}
+          {/* Chevron */}
+          <button
+            onClick={() => setExpanded(s => !s)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0, display: 'flex', alignItems: 'center', color: 'rgba(55,53,47,0.3)', borderRadius: 3, transition: 'background 0.1s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(55,53,47,0.08)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <span style={{ transition: 'transform 0.15s', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'flex' }}>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </button>
+
+          <span style={{ color: 'rgba(55,53,47,0.4)', flexShrink: 0, display: 'flex' }}><PageIcon /></span>
+
+          {/* Title */}
+          <input
+            ref={labelRef}
+            type="text"
+            value={label}
+            onChange={e => {
+              const val = e.target.value
+              setLabel(val)
+              const html = quillRef.current?.root.innerHTML ?? null
+              const text = quillRef.current?.getText() ?? ''
+              schedule(val, text.trim() ? html : null)
+            }}
+            onBlur={e => { if (!e.target.value.trim()) setLabel(autoTitle) }}
+            placeholder={autoTitle}
+            className="clip-row-title"
+            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, fontWeight: 500, color: '#37352f', fontFamily: 'Inter, sans-serif', cursor: 'text', minWidth: 0 }}
+          />
+
+          {/* Meta + menu */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            {saved && (
+              <span style={{ fontSize: 10, color: '#10b981', fontWeight: 500, fontFamily: 'Inter, sans-serif' }}>Saved</span>
+            )}
+            {!saved && (hovered || active) && (
+              <span style={{ fontSize: 11, color: 'rgba(55,53,47,0.3)', fontFamily: 'Inter, sans-serif' }}>{ageLabel(lastEdited)}</span>
+            )}
+            {item.url && (
+              <a href={item.url} target="_blank" rel="noopener noreferrer" title={item.url}
+                style={{ color: 'rgba(55,53,47,0.4)', textDecoration: 'none', fontSize: 11, display: 'flex', alignItems: 'center', padding: '2px 4px', borderRadius: 3, transition: 'background 0.1s, color 0.1s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(55,53,47,0.08)'; e.currentTarget.style.color = '#37352f' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(55,53,47,0.4)' }}
+              >↗</a>
+            )}
+            {(hovered || active) && (
+              <DotMenu onAskAI={onAskAI} onCopy={copyContent} onDelete={onArchive} />
+            )}
+          </div>
+        </div>
+
+        {/* Editor */}
+        <div className={`quill-expand-area ${expanded ? 'open' : 'closed'}`} style={{ marginLeft: 30 }}>
+          <div ref={containerRef} className="notion-quill" style={{ borderTop: '1px solid #e9e9e7', overflow: 'hidden' }} />
+        </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -5,37 +5,49 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-const OscilLogo = () => (
-  <svg width="36" height="32" viewBox="0 0 36 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g clipPath="url(#clip0_13_13)">
-      <path d="M11.9188 17.3086C12.4433 17.0691 12.956 16.8041 13.455 16.5147C14.7995 15.7349 16.0386 14.7839 17.1416 13.6851C19.6687 11.1713 21.3029 8.09132 22.0413 4.84502C22.0807 4.67143 22.0998 4.54301 22.1347 4.36573C22.3372 3.34626 22.8545 2.39235 23.6446 1.60637C25.7501 -0.488357 29.0706 -0.597808 31.2245 1.65281C31.7647 2.2172 32.628 2.89175 32.7128 4.65132C32.7142 5.39511 32.6694 6.13947 32.5794 6.87957C32.1048 10.7986 30.3621 14.59 27.3562 17.5802C23.4339 21.4825 18.1825 23.2018 13.0891 22.7483C11.4303 22.6007 9.79968 22.2227 8.24372 21.6251C6.53041 20.9663 4.9278 20.0464 3.492 18.8976C6.35794 19.0539 9.25468 18.5242 11.9188 17.3086Z" fill="#4ACFD2"/>
-      <path d="M15.4744 1.18994C17.0003 -0.327931 19.459 -0.313064 20.9666 1.22336C21.9323 2.20771 22.3611 3.41225 22.0807 4.66874L22.0413 4.84517C21.3029 8.09132 19.6687 11.1713 17.1416 13.6851C16.0386 14.7839 14.7994 15.7349 13.4549 16.5147C12.9559 16.8041 12.4433 17.069 11.9188 17.3086C12.4036 16.5148 12.8266 15.6843 13.184 14.8246C14.5278 11.5923 14.9029 8.04644 14.3062 4.63773C14.3017 4.58704 14.2597 4.38244 14.2597 4.38244C14.1078 3.21217 14.5762 2.08354 15.4744 1.18994Z" fill="#F0B400"/>
-      <path d="M13.4793 2.83612C13.8085 3.17067 14.0521 3.58065 14.1892 4.03088C14.2317 4.23251 14.2705 4.43527 14.3062 4.63775C14.903 8.04646 14.528 11.5924 13.184 14.8249C12.5928 11.9835 11.3292 9.32763 9.5005 7.08306C9.32802 6.87067 9.15074 6.66229 8.9688 6.45807C8.01676 5.4192 8.38591 3.7964 9.37661 2.81091C10.5164 1.67704 12.3534 1.68865 13.4793 2.83612Z" fill="#E23E2B"/>
-      <path d="M1.86286 17.4253C2.37607 17.9486 2.9202 18.4402 3.49228 18.8974C4.92795 20.0463 6.53041 20.9662 8.24358 21.6249C9.79948 22.2227 11.4301 22.6007 13.089 22.7482C18.1827 23.2019 23.4336 21.4824 27.3561 17.5806C31.0199 13.936 32.7845 9.11124 32.6874 4.30628C32.4716 3.1128 31.9939 3.26699 32.0102 2.65106C32.1238 2.74366 32.6323 3.23825 33.0054 3.77503C37.677 10.8606 36.8776 20.5089 30.6429 26.7112C24.9279 32.3962 16.3931 33.4482 9.63394 29.8962C8.01647 29.0461 6.50081 27.933 5.14969 26.5561C4.54204 25.9372 3.97909 25.2754 3.46514 24.5757C2.12394 22.7506 1.13726 20.6868 0.557016 18.4929C0.271167 17.4141 0.0847058 16.311 0 15.1978C0.561085 15.989 1.18402 16.7339 1.86286 17.4253Z" fill="#3A7CEB"/>
-    </g>
-    <defs>
-      <clipPath id="clip0_13_13">
-        <rect width="36" height="32" fill="white"/>
-      </clipPath>
-    </defs>
+
+type ProjectWithDate = { id: string; title: string; description: string | null; created_at: string }
+const PlusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 )
 
-type Project = { id: string; title: string; description: string | null; created_at: string }
+const ChevronRight = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const PageIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M3 2h7l3 3v9H3V2z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+    <path d="M10 2v3h3" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+  </svg>
+)
+
+const FolderIcon = ({ color }: { color: string }) => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M1 4a1 1 0 011-1h4l1.5 2H14a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V4z" fill={color} fillOpacity="0.2" stroke={color} strokeWidth="1.1"/>
+  </svg>
+)
+
+
+const dotColors = ['#6C63FF', '#4ACFD2', '#F0B400', '#E23E2B']
 
 export default function DashboardClient({
   initialProjects,
   initialCount,
   userEmail,
 }: {
-  initialProjects: Project[]
+  initialProjects: ProjectWithDate[]
   initialCount: number
   userEmail: string
 }) {
   const router = useRouter()
   const supabase = createClient()
 
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [projects, setProjects] = useState<ProjectWithDate[]>(initialProjects)
   const [count, setCount] = useState(initialCount)
   const [showModal, setShowModal] = useState(false)
   const [title, setTitle] = useState('')
@@ -49,7 +61,6 @@ export default function DashboardClient({
     else { setTitle(''); setDescription(''); setError('') }
   }, [showModal])
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowModal(false) }
     window.addEventListener('keydown', handler)
@@ -73,265 +84,603 @@ export default function DashboardClient({
     router.push(`/dashboard/project/${data.id}`)
   }
 
-  const dotColors = ['#3A7CEB', '#4ACFD2', '#F0B400', '#E23E2B']
-
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-        .dash-root { font-family: 'DM Sans', sans-serif; }
-        .font-syne { font-family: 'Syne', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-        @keyframes shimmer {
-          0%   { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        .shimmer-text {
-          background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 25%, #f59e0b 50%, #ef4444 75%, #3b82f6 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          animation: shimmer 4s linear infinite;
-        }
-
-        @keyframes modal-in {
-          from { opacity: 0; transform: translateY(12px) scale(0.98); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes backdrop-in {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        .modal-backdrop {
-          animation: backdrop-in 0.2s ease both;
-        }
-        .modal-card {
-          animation: modal-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-
-        .project-card-hover .arrow-icon { transition: transform 0.2s, color 0.2s; }
-        .project-card-hover:hover .arrow-icon { transform: translateX(4px); color: #3A7CEB; }
-
-        .field-input {
-          width: 100%;
-          padding: 11px 14px;
-          border: 1.5px solid #e5e5e4;
-          border-radius: 10px;
-          font-size: 13px;
-          font-family: 'DM Sans', sans-serif;
-          color: #0f0f0f;
-          background: #f8f8f7;
-          outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-        }
-        .field-input::placeholder { color: #c4c4c2; }
-        .field-input:focus {
-          border-color: #3A7CEB;
+        * { box-sizing: border-box; }
+        .notion-root {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 14px;
+          color: #37352f;
           background: #fff;
-          box-shadow: 0 0 0 3px rgba(58,124,235,0.1);
         }
 
-        .mesh-bg {
-          background:
-            radial-gradient(ellipse at 10% 20%, rgba(59,130,246,0.06) 0%, transparent 50%),
-            radial-gradient(ellipse at 90% 80%, rgba(6,182,212,0.05) 0%, transparent 50%),
-            radial-gradient(ellipse at 60% 10%, rgba(245,158,11,0.04) 0%, transparent 45%),
-            #f8f8f7;
+        /* Sidebar */
+        .sidebar {
+          width: 240px;
+          flex-shrink: 0;
+          background: #f7f6f3;
+          border-right: 1px solid #e9e9e7;
+          height: 100vh;
+          position: sticky;
+          top: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          transition: width 0.2s ease;
         }
+        .sidebar.collapsed { width: 0; border-right: none; }
+
+        .sidebar-header {
+          padding: 12px 12px 4px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .workspace-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          flex: 1;
+          min-width: 0;
+          background: none;
+          border: none;
+          text-align: left;
+          color: #37352f;
+          font-size: 14px;
+          font-weight: 500;
+          font-family: inherit;
+        }
+        .workspace-btn:hover { background: rgba(55,53,47,0.08); }
+
+        .icon-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          border: none;
+          background: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(55,53,47,0.45);
+          flex-shrink: 0;
+        }
+        .icon-btn:hover { background: rgba(55,53,47,0.08); color: #37352f; }
+
+        .sidebar-section {
+          padding: 0 8px;
+          margin-top: 8px;
+        }
+        .sidebar-section-label {
+          font-size: 11px;
+          font-weight: 500;
+          color: rgba(55,53,47,0.5);
+          padding: 4px 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-bottom: 2px;
+        }
+
+        .sidebar-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          color: rgba(55,53,47,0.75);
+          font-size: 13.5px;
+          text-decoration: none;
+          white-space: nowrap;
+          overflow: hidden;
+          transition: background 0.1s;
+        }
+        .sidebar-item:hover { background: rgba(55,53,47,0.08); color: #37352f; }
+        .sidebar-item.active { background: rgba(55,53,47,0.08); color: #37352f; }
+        .sidebar-item-icon { flex-shrink: 0; opacity: 0.6; }
+        .sidebar-item-text { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+
+        .sidebar-new-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          color: rgba(55,53,47,0.5);
+          font-size: 13.5px;
+          background: none;
+          border: none;
+          width: 100%;
+          font-family: inherit;
+          text-align: left;
+          transition: background 0.1s, color 0.1s;
+        }
+        .sidebar-new-btn:hover { background: rgba(55,53,47,0.08); color: #37352f; }
+
+        .sidebar-footer {
+          margin-top: auto;
+          padding: 8px;
+          border-top: 1px solid #e9e9e7;
+        }
+
+        /* Main content */
+        .main-content {
+          flex: 1;
+          min-width: 0;
+          overflow-y: auto;
+          height: 100vh;
+        }
+
+        .topbar {
+          height: 45px;
+          display: flex;
+          align-items: center;
+          padding: 0 16px;
+          border-bottom: 1px solid #e9e9e7;
+          gap: 8px;
+          position: sticky;
+          top: 0;
+          background: #fff;
+          z-index: 10;
+        }
+        .topbar-breadcrumb {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13.5px;
+          color: rgba(55,53,47,0.65);
+          flex: 1;
+        }
+        .topbar-breadcrumb span { color: #37352f; font-weight: 500; }
+
+        /* Page content */
+        .page-content {
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 60px 96px 120px;
+        }
+        @media (max-width: 768px) {
+          .page-content { padding: 40px 24px 80px; }
+          .sidebar { display: none; }
+        }
+
+        .page-emoji { font-size: 52px; margin-bottom: 12px; line-height: 1; }
+        .page-title {
+          font-size: 40px;
+          font-weight: 700;
+          color: #37352f;
+          line-height: 1.2;
+          margin-bottom: 8px;
+          letter-spacing: -0.02em;
+        }
+        .page-subtitle {
+          font-size: 14px;
+          color: rgba(55,53,47,0.5);
+          margin-bottom: 48px;
+          font-weight: 400;
+        }
+
+        /* Stats row */
+        .stats-row {
+          display: flex;
+          gap: 1px;
+          margin-bottom: 40px;
+          background: #e9e9e7;
+          border: 1px solid #e9e9e7;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .stat-cell {
+          flex: 1;
+          background: #fff;
+          padding: 14px 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .stat-num {
+          font-size: 24px;
+          font-weight: 600;
+          color: #37352f;
+          letter-spacing: -0.03em;
+        }
+        .stat-label {
+          font-size: 12px;
+          color: rgba(55,53,47,0.5);
+          font-weight: 400;
+        }
+        .stat-divider {
+          width: 1px;
+          background: #e9e9e7;
+        }
+
+        /* Table */
+        .table-header-row {
+          display: flex;
+          align-items: center;
+          padding: 0 12px;
+          height: 34px;
+          border-bottom: 1px solid #e9e9e7;
+          margin-bottom: 2px;
+        }
+        .table-header-cell {
+          font-size: 11px;
+          font-weight: 500;
+          color: rgba(55,53,47,0.45);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          flex: 1;
+        }
+        .table-header-cell.date-col { width: 120px; flex: none; text-align: right; }
+
+        .project-row {
+          display: flex;
+          align-items: center;
+          padding: 0 12px;
+          height: 40px;
+          border-radius: 6px;
+          text-decoration: none;
+          color: #37352f;
+          transition: background 0.1s;
+          gap: 10px;
+        }
+        .project-row:hover { background: rgba(55,53,47,0.04); }
+        .project-row:hover .row-chevron { opacity: 1; }
+        .row-chevron { opacity: 0; color: rgba(55,53,47,0.35); transition: opacity 0.15s; }
+
+        .row-title {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+          font-size: 14px;
+        }
+        .row-title-text {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .row-desc {
+          font-size: 13px;
+          color: rgba(55,53,47,0.45);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 260px;
+        }
+        .row-date {
+          font-size: 12px;
+          color: rgba(55,53,47,0.4);
+          width: 120px;
+          text-align: right;
+          flex-shrink: 0;
+        }
+
+        .new-page-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0 12px;
+          height: 36px;
+          border-radius: 6px;
+          cursor: pointer;
+          color: rgba(55,53,47,0.4);
+          font-size: 14px;
+          margin-top: 4px;
+          background: none;
+          border: none;
+          width: 100%;
+          font-family: inherit;
+          text-align: left;
+          transition: background 0.1s, color 0.1s;
+        }
+        .new-page-row:hover { background: rgba(55,53,47,0.04); color: rgba(55,53,47,0.7); }
+
+        /* Empty state */
+        .empty-state {
+          text-align: center;
+          padding: 64px 0 32px;
+        }
+        .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+        .empty-title { font-size: 16px; font-weight: 500; color: rgba(55,53,47,0.5); margin-bottom: 8px; }
+        .empty-sub { font-size: 13px; color: rgba(55,53,47,0.35); margin-bottom: 20px; }
+        .empty-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 14px;
+          background: linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%);
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          font-size: 13.5px;
+          font-family: inherit;
+          font-weight: 500;
+          cursor: pointer;
+          transition: opacity 0.15s;
+        }
+        .empty-btn:hover { opacity: 0.8; }
+
+        /* Modal */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15,15,15,0.35);
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: overlay-in 0.15s ease;
+        }
+        @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+        .modal-box {
+          background: #fff;
+          border-radius: 8px;
+          box-shadow: rgba(15,15,15,0.1) 0 0 0 1px, rgba(15,15,15,0.2) 0 8px 32px -4px;
+          width: 100%;
+          max-width: 460px;
+          overflow: hidden;
+          animation: modal-up 0.18s cubic-bezier(0.18, 0.89, 0.45, 1.1);
+        }
+        @keyframes modal-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        .modal-top-strip {
+          height: 3px;
+          background: linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%);
+        }
+
+        .modal-body { padding: 24px 24px 20px; }
+        .modal-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: rgba(55,53,47,0.5);
+          text-transform: uppercase;
+          letter-spacing: 0.07em;
+          margin-bottom: 16px;
+        }
+
+        .notion-input {
+          width: 100%;
+          border: none;
+          border-bottom: 1.5px solid #e9e9e7;
+          padding: 4px 0 8px;
+          font-size: 22px;
+          font-weight: 600;
+          color: #37352f;
+          font-family: inherit;
+          outline: none;
+          background: transparent;
+          margin-bottom: 12px;
+          transition: border-color 0.15s;
+        }
+        .notion-input::placeholder { color: rgba(55,53,47,0.25); }
+        .notion-input:focus { border-bottom-color: #37352f; }
+
+        .notion-textarea {
+          width: 100%;
+          border: none;
+          padding: 0;
+          font-size: 14px;
+          color: rgba(55,53,47,0.75);
+          font-family: inherit;
+          outline: none;
+          background: transparent;
+          resize: none;
+          min-height: 60px;
+          line-height: 1.6;
+        }
+        .notion-textarea::placeholder { color: rgba(55,53,47,0.25); }
+
+        .error-bar {
+          font-size: 12px;
+          color: #e03e3e;
+          background: #fdf2f2;
+          border-radius: 4px;
+          padding: 8px 12px;
+          margin-bottom: 12px;
+        }
+
+        .modal-footer {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 8px;
+          padding: 14px 24px;
+          border-top: 1px solid #e9e9e7;
+          background: #f7f6f3;
+        }
+
+        .btn-cancel {
+          padding: 6px 14px;
+          border-radius: 5px;
+          border: 1px solid #e9e9e7;
+          background: #fff;
+          font-size: 13.5px;
+          font-family: inherit;
+          font-weight: 500;
+          color: rgba(55,53,47,0.7);
+          cursor: pointer;
+          transition: background 0.1s;
+        }
+        .btn-cancel:hover { background: rgba(55,53,47,0.06); }
+
+        .btn-create {
+          padding: 6px 14px;
+          border-radius: 5px;
+          border: none;
+          background: linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%);
+          color: #fff;
+          font-size: 13.5px;
+          font-family: inherit;
+          font-weight: 500;
+          cursor: pointer;
+          transition: opacity 0.15s;
+        }
+        .btn-create:hover { opacity: 0.8; }
+        .btn-create:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .sign-out-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          color: rgba(55,53,47,0.65);
+          font-size: 13px;
+          background: none;
+          border: none;
+          font-family: inherit;
+          width: 100%;
+          text-align: left;
+          transition: background 0.1s;
+        }
+        .sign-out-btn:hover { background: rgba(55,53,47,0.08); color: #37352f; }
       `}</style>
 
-      <div className="dash-root mesh-bg min-h-screen text-zinc-900">
-
-        {/* ── Header ── */}
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-zinc-100">
-          <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <OscilLogo />
-              <div className="flex flex-col justify-center leading-none">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-syne font-bold text-sm tracking-widest uppercase text-zinc-900">Oscil</span>
-                  <span className="font-syne text-[11px] font-bold tracking-widest shimmer-text uppercase">AI</span>
-                </div>
-                <span className="text-[8px] font-medium tracking-[2px] uppercase text-zinc-400 mt-0.5">
-                  Information Across Dimensions
-                </span>
-              </div>
+      <div className="notion-root" style={{ height: '100vh', overflow: 'hidden' }}>
+        {/* ── Main ── */}
+        <main className="main-content">
+          {/* Topbar */}
+          <div className="topbar">
+            <div className="topbar-breadcrumb">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.5 }}>
+                <path d="M6.5 1L1 4.8V12h4V8.5h3V12h4V4.8L6.5 1z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/>
+              </svg>
+              <ChevronRight />
+              <span>Projects</span>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] text-zinc-400 hidden sm:block">{userEmail}</span>
-              <form action="/auth/signout" method="post">
-                <button type="submit" className="text-[11px] font-medium text-zinc-500 border border-zinc-200 px-3 py-1.5 rounded-lg hover:border-zinc-900 hover:text-zinc-900 transition-all">
-                  Sign out
-                </button>
-              </form>
-            </div>
-          </div>
-        </header>
 
-        <main className="max-w-5xl mx-auto px-6 py-14">
-
-          {/* ── Hero ── */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-14">
-            <div>
-              <p className="font-syne text-[10px] font-semibold tracking-[3px] uppercase text-zinc-400 mb-3">
-                Research Playground
-              </p>
-              <h1 className="font-syne font-extrabold text-5xl leading-none tracking-tight">
-                Your <span className="shimmer-text">Projects</span>
-              </h1>
-              <p className="mt-3 text-sm text-zinc-400 font-light max-w-xs">
-                Oscillating across dimensions — gather, process, and learn with care.
-              </p>
-            </div>
-            <div className="flex flex-shrink-0 bg-white border border-zinc-100 rounded-2xl overflow-hidden shadow-sm">
-              <div className="px-7 py-5 flex flex-col items-center gap-1">
-                <span className="font-syne font-bold text-3xl text-zinc-900">{projects.length}</span>
-                <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">Projects</span>
-              </div>
-              <div className="w-px bg-zinc-100" />
-              <div className="px-7 py-5 flex flex-col items-center gap-1">
-                <span className="font-syne font-bold text-3xl text-zinc-900">{count}</span>
-                <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">Clips</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Section header ── */}
-          <div className="flex items-center justify-between mb-5">
-            <span className="text-[10px] font-semibold tracking-[2px] uppercase text-zinc-400">All Projects</span>
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#3A7CEB] text-white text-[12px] font-semibold rounded-xl hover:bg-[#2563c7] active:scale-95 transition-all"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '5px 10px', background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)', color: '#fff',
+                border: 'none', borderRadius: 5, fontSize: 13, fontFamily: 'inherit',
+                fontWeight: 500, cursor: 'pointer', opacity: 1, transition: 'opacity 0.15s'
+              }}
+              onMouseOver={e => (e.currentTarget.style.opacity = '0.8')}
+              onMouseOut={e => (e.currentTarget.style.opacity = '1')}
             >
-              <span className="text-base leading-none">+</span> New Project
+              <PlusIcon />
+              New
             </button>
           </div>
 
-          {/* ── Project list / Empty ── */}
-          {!projects.length ? (
-            <div className="text-center py-24 border-2 border-dashed border-zinc-200 rounded-3xl bg-white/60">
-              <div className="flex justify-center mb-5"><OscilLogo /></div>
-              <p className="font-syne font-bold text-2xl text-zinc-300 mb-2">No projects yet.</p>
-              <p className="text-sm text-zinc-400 font-light mb-6">Create one and start clipping from the web.</p>
-              <button
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#3A7CEB] text-white text-[12px] font-semibold rounded-xl hover:bg-[#2563c7] transition-all"
-              >
-                <span className="text-base leading-none">+</span> New Project
-              </button>
+          {/* Page */}
+          <div className="page-content">
+            <div className="page-emoji">📁</div>
+            <h1 className="page-title">Projects</h1>
+            <p className="page-subtitle">Research playground — gather, process, and learn.</p>
+
+            {/* Stats */}
+            <div className="stats-row">
+              <div className="stat-cell">
+                <div>
+                  <div className="stat-num">{projects.length}</div>
+                  <div className="stat-label">Projects</div>
+                </div>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat-cell">
+                <div>
+                  <div className="stat-num">{count}</div>
+                  <div className="stat-label">Clips saved</div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {projects.map((p, i) => (
-                <Link
-                  key={p.id}
-                  href={`/dashboard/project/${p.id}`}
-                  className="project-card-hover group bg-white border border-zinc-100 rounded-2xl px-6 py-5 flex items-center justify-between hover:border-blue-300 hover:shadow-[0_4px_24px_rgba(59,130,246,0.10)] transition-all duration-200"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dotColors[i % 4] }} />
-                    <div>
-                      <div className="font-syne font-semibold text-[14px] text-zinc-900 group-hover:text-[#3A7CEB] transition-colors">{p.title}</div>
-                      {p.description && <div className="text-[12px] text-zinc-400 font-light mt-0.5">{p.description}</div>}
+
+            {/* Table view */}
+            {!projects.length ? (
+              <div className="empty-state">
+                <div className="empty-icon">📄</div>
+                <div className="empty-title">No projects yet</div>
+                <div className="empty-sub">Create one and start clipping from the web.</div>
+                <button className="empty-btn" onClick={() => setShowModal(true)}>
+                  <PlusIcon />
+                  New project
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="table-header-row">
+                  <div className="table-header-cell">Name</div>
+                  <div className="table-header-cell" style={{ maxWidth: 260, display: 'none' }}>Description</div>
+                  <div className="table-header-cell date-col">Created</div>
+                </div>
+
+                {projects.map((p, i) => (
+                  <Link key={p.id} href={`/dashboard/project/${p.id}`} className="project-row">
+                    <div className="row-title">
+                      <span style={{ flexShrink: 0 }}><FolderIcon color={dotColors[i % 4]} /></span>
+                      <span className="row-title-text">{p.title}</span>
+                      {p.description && (
+                        <span className="row-desc">{p.description}</span>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-5 flex-shrink-0 ml-6">
-                    <span className="text-[11px] text-zinc-300 hidden sm:block">
+                    <div className="row-date">
                       {new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                    <span className="arrow-icon text-zinc-300 text-lg">→</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                    </div>
+                    <span className="row-chevron"><ChevronRight /></span>
+                  </Link>
+                ))}
+
+                <button className="new-page-row" onClick={() => setShowModal(true)}>
+                  <span style={{ opacity: 0.5 }}><PlusIcon /></span>
+                  <span>New project</span>
+                </button>
+              </div>
+            )}
+          </div>
         </main>
       </div>
 
       {/* ── Modal ── */}
       {showModal && (
         <div
-          className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(15,15,15,0.45)', backdropFilter: 'blur(6px)' }}
+          className="modal-overlay"
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}
         >
-          <div className="modal-card bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="modal-box">
+            <div className="modal-top-strip" />
+            <div className="modal-body">
+              <div className="modal-label">New project</div>
 
-            {/* Modal top accent bar — brand gradient */}
-            <div className="h-1 w-full" style={{
-              background: 'linear-gradient(90deg, #3A7CEB, #4ACFD2, #F0B400, #E23E2B)',
-            }} />
+              {error && <div className="error-bar">{error}</div>}
 
-            <div className="p-8">
-              {/* Modal header */}
-              <div className="flex items-start justify-between mb-7">
-                <div>
-                  <p className="text-[9px] font-semibold tracking-[2.5px] uppercase text-zinc-400 mb-1">New Project</p>
-                  <h2 className="font-syne font-extrabold text-2xl text-zinc-900 tracking-tight">
-                    Start a <span className="shimmer-text">playground</span>
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-zinc-300 hover:text-zinc-600 transition-colors text-xl leading-none mt-1"
-                >
-                  ✕
-                </button>
-              </div>
+              <input
+                ref={titleRef}
+                className="notion-input"
+                type="text"
+                placeholder="Untitled project"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && create()}
+              />
 
-              {/* Error */}
-              {error && (
-                <div className="mb-5 text-[12px] text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                  {error}
-                </div>
-              )}
+              <textarea
+                className="notion-textarea"
+                placeholder="Add a description..."
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+              />
+            </div>
 
-              {/* Fields */}
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold tracking-[1px] uppercase text-zinc-400">Title</label>
-                  <input
-                    ref={titleRef}
-                    className="field-input"
-                    type="text"
-                    placeholder="e.g. AI Research, Competitor Analysis..."
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && create()}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold tracking-[1px] uppercase text-zinc-400">
-                    Description <span className="text-zinc-300 normal-case font-normal tracking-normal">— optional</span>
-                  </label>
-                  <textarea
-                    className="field-input resize-none"
-                    style={{ minHeight: 88, lineHeight: 1.6 }}
-                    placeholder="What are you exploring?"
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                  />
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 mt-1">
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 py-3 text-[12px] font-semibold text-zinc-400 border border-zinc-200 rounded-xl hover:border-zinc-400 hover:text-zinc-600 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={create}
-                    disabled={loading}
-                    className="flex-1 py-3 text-[12px] font-semibold text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
-                    style={{ background: loading ? '#aaa' : 'linear-gradient(135deg, #3A7CEB, #4ACFD2)' }}
-                  >
-                    {loading ? 'Creating...' : 'Create Project'}
-                  </button>
-                </div>
-              </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="btn-create" onClick={create} disabled={loading}>
+                {loading ? 'Creating...' : 'Create project'}
+              </button>
             </div>
           </div>
         </div>
