@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Item, ageLabel } from './types'
+import { useAppTheme } from '../../DShared';
 
 function loadQuill(cb: () => void) {
   if (!document.getElementById('ql-css')) {
@@ -35,11 +36,6 @@ function defaultTitle(i: number) {
   return `Untitled ${String(i + 1).padStart(2, '0')}`
 }
 
-function hostname(url: string) {
-  try { return new URL(url).hostname.replace(/^www\./, '') }
-  catch { return url.slice(0, 30) }
-}
-
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const PageIcon = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -63,6 +59,7 @@ function DotMenu({ onAskAI, onCopy, onDelete }: {
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { t } = useAppTheme()
 
   useEffect(() => {
     if (!open) return
@@ -79,10 +76,10 @@ function DotMenu({ onAskAI, onCopy, onDelete }: {
         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
         padding: '6px 10px', border: 'none', background: 'none',
         fontSize: 12.5, fontFamily: 'Inter, sans-serif', cursor: 'pointer',
-        textAlign: 'left', color: danger ? '#e23e2b' : '#37352f',
+        textAlign: 'left', color: danger ? '#e23e2b' : t.fg,
         borderRadius: 4, transition: 'background 0.1s',
       }}
-      onMouseEnter={e => e.currentTarget.style.background = danger ? 'rgba(227,62,43,0.06)' : 'rgba(55,53,47,0.06)'}
+      onMouseEnter={e => e.currentTarget.style.background = danger ? 'rgba(227,62,43,0.08)' : t.sidebarItemHoverBg}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
       <span style={{ fontSize: 13 }}>{icon}</span>{label}
@@ -93,26 +90,25 @@ function DotMenu({ onAskAI, onCopy, onDelete }: {
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
       <button onClick={e => { e.stopPropagation(); setOpen(s => !s) }}
         style={{
-          background: open ? 'rgba(55,53,47,0.08)' : 'none', border: 'none',
+          background: open ? t.sidebarItemHoverBg : 'none', border: 'none',
           cursor: 'pointer', padding: '2px 4px', borderRadius: 4,
-          display: 'flex', alignItems: 'center', color: 'rgba(55,53,47,0.4)',
+          display: 'flex', alignItems: 'center', color: t.fgLow,
           transition: 'background 0.1s, color 0.1s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(55,53,47,0.08)'; e.currentTarget.style.color = '#37352f' }}
-        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(55,53,47,0.4)' } }}
+        onMouseEnter={e => { e.currentTarget.style.background = t.sidebarItemHoverBg; e.currentTarget.style.color = t.fg }}
+        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = t.fgLow } }}
       >
         <DotsIcon />
       </button>
       {open && (
         <div style={{
           position: 'absolute', right: 0, top: '100%', marginTop: 4,
-          background: '#fff', border: '1px solid #e9e9e7', borderRadius: 6,
-          boxShadow: 'rgba(15,15,15,0.1) 0 0 0 1px, rgba(15,15,15,0.12) 0 4px 16px -2px',
-          zIndex: 100, minWidth: 160, padding: 3,
+          background: t.modalBg, border: `1px solid ${t.border}`, borderRadius: 6,
+          boxShadow: t.shadowModal, zIndex: 100, minWidth: 160, padding: 3,
         }}>
           {menuItem('Ask Oscil AI', '✦', onAskAI)}
           {menuItem('Copy text', '⎘', onCopy)}
-          <div style={{ height: 1, background: '#e9e9e7', margin: '3px 0' }} />
+          <div style={{ height: 1, background: t.border, margin: '3px 0' }} />
           {menuItem('Delete', '✕', onDelete, true)}
         </div>
       )}
@@ -139,8 +135,9 @@ export function QuillBlock({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quillRef     = useRef<any>(null)
   const timer        = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // Track which URLs we've already probed so we don't re-probe on every keystroke
   const probedRef    = useRef<Set<string>>(new Set())
+
+  const { t, dark } = useAppTheme()
 
   const autoTitle = defaultTitle(index)
   const [label, setLabel]       = useState(item.label || autoTitle)
@@ -160,14 +157,6 @@ export function QuillBlock({
     }, 700)
   }
 
-  /**
-   * Scan editor text for raw URLs not yet processed.
-   * Immediately embed each as a Quill image — the browser will render it
-   * if it can (including CORS-restricted CDN images like LinkedIn, which
-   * block JS probes but load fine as <img> tags).
-   * If the image fails to load, the onerror handler in the editor CSS
-   * replaces it with a styled link chip via a data attribute.
-   */
   function tryEmbedUrls() {
     const quill = quillRef.current
     if (!quill) return
@@ -178,7 +167,6 @@ export function QuillBlock({
 
     fresh.forEach(url => {
       probedRef.current.add(url)
-      // Small delay so Quill finishes its own text-change processing first
       setTimeout(() => {
         const currentText = quill.getText()
         const idx = currentText.indexOf(url)
@@ -186,7 +174,6 @@ export function QuillBlock({
         quill.deleteText(idx, url.length)
         quill.insertEmbed(idx, 'image', url)
         quill.setSelection(idx + 1, 0)
-        // After embed, find the <img> and attach onerror to replace with link
         setTimeout(() => {
           const root = quill.root as HTMLElement
           const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img')).filter(i => i.src === url)
@@ -194,7 +181,6 @@ export function QuillBlock({
             if (img.dataset.handled) return
             img.dataset.handled = '1'
             img.onerror = () => {
-              // Image failed (broken/restricted) — replace with a link chip span
               const chip = document.createElement('a')
               chip.href = url
               chip.target = '_blank'
@@ -202,10 +188,9 @@ export function QuillBlock({
               chip.className = 'ql-url-chip'
               chip.textContent = (() => { try { return new URL(url).hostname.replace(/^www\./, '') } catch { return url.slice(0, 40) } })()
               img.replaceWith(chip)
-              // Re-save since DOM changed
               const html = quill.root.innerHTML
-              const t = quill.getText()
-              schedule(labelRef.current?.value ?? label, t.trim() ? html : null)
+              const txt = quill.getText()
+              schedule(labelRef.current?.value ?? label, txt.trim() ? html : null)
             }
           })
         }, 50)
@@ -240,17 +225,12 @@ export function QuillBlock({
       quill.on('text-change', () => {
         const text = quill.getText()
 
-        // ── !ask command parser ───────────────────────────────────────────
-        // Syntax: !ask <question> [-this|-free]
-        // -this  = pass this clip as context (default)
-        // -free  = no context, fresh question
         const cmdLine = text.split('\n').find((l: string) => l.trimStart().startsWith('!ask'))
         if (cmdLine !== undefined) {
-          const inner     = cmdLine.replace(/^!ask\s*/i, '')
-          const freeFlag  = /\s-free$/i.test(inner)
-          const thisFlag  = /\s-this$/i.test(inner)
-          const question  = inner.replace(/\s-(free|this)$/i, '').trim()
-          const withCtx   = !freeFlag // default to -this unless -free explicitly set
+          const inner    = cmdLine.replace(/^!ask\s*/i, '')
+          const freeFlag = /\s-free$/i.test(inner)
+          const question = inner.replace(/\s-(free|this)$/i, '').trim()
+          const withCtx  = !freeFlag
           setTimeout(() => {
             const cur = quill.getText()
             const idx = cur.indexOf(cmdLine.trimStart())
@@ -262,7 +242,6 @@ export function QuillBlock({
           }, 80)
           return
         }
-        // ─────────────────────────────────────────────────────────────────
 
         const html    = quill.root.innerHTML
         const content = text.trim() ? html : null
@@ -280,7 +259,6 @@ export function QuillBlock({
   }, [expanded, item.id]) // eslint-disable-line
 
   const lastEdited = item.last_edited || item.saved_at
-  const rowBg = hovered ? 'rgba(55,53,47,0.03)' : 'transparent'
 
   function copyContent() {
     const text = quillRef.current?.getText() || item.content || ''
@@ -290,45 +268,74 @@ export function QuillBlock({
   return (
     <>
       <style>{`
+        /* ── Toolbar ── */
         .notion-quill .ql-toolbar {
-          border: none !important; border-bottom: 1px solid #e9e9e7 !important;
-          padding: 4px 8px !important; background: #f7f6f3 !important; border-radius: 0 !important;
+          border: none !important;
+          border-bottom: 1px solid ${t.border} !important;
+          padding: 4px 8px !important;
+          background: ${t.surfaceBg} !important;
+          border-radius: 0 !important;
         }
+        /* ── Container / editor ── */
         .notion-quill .ql-container {
-          border: none !important; font-family: 'Inter', -apple-system, sans-serif !important;
-          font-size: 14px !important; color: #37352f !important;
+          border: none !important;
+          font-family: 'Inter', -apple-system, sans-serif !important;
+          font-size: 14px !important;
+          background: ${t.bg} !important;
         }
         .notion-quill .ql-editor {
-          padding: 10px 16px 12px !important; min-height: 100px !important;
-          line-height: 1.65 !important; color: #37352f !important;
+          padding: 10px 16px 12px !important;
+          min-height: 100px !important;
+          line-height: 1.65 !important;
+          color: ${t.fg} !important;
+          background: ${t.bg} !important;
+          caret-color: ${t.fg} !important;
         }
+        /* Placeholder */
         .notion-quill .ql-editor.ql-blank::before {
-          color: rgba(55,53,47,0.3) !important; font-style: normal !important; left: 16px !important;
+          color: ${t.fgLow} !important;
+          font-style: normal !important;
+          left: 16px !important;
         }
+        /* Inline formats */
+        .notion-quill .ql-editor strong,
+        .notion-quill .ql-editor b { color: ${t.fg} !important; }
+        .notion-quill .ql-editor em,
+        .notion-quill .ql-editor i  { color: ${t.fgMid} !important; }
+        .notion-quill .ql-editor u  { color: ${t.fg} !important; text-decoration-color: ${t.fgLow} !important; }
+        .notion-quill .ql-editor p,
+        .notion-quill .ql-editor li { color: ${t.fg} !important; }
+        /* Lists */
+        .notion-quill .ql-editor ol,
+        .notion-quill .ql-editor ul  { color: ${t.fg} !important; }
+        /* Images */
         .notion-quill .ql-editor img {
           max-width: 100% !important; border-radius: 4px !important;
           display: block !important; margin: 6px 0 !important;
-          border: 1px solid #e9e9e7 !important; cursor: pointer !important;
+          border: 1px solid ${t.border} !important; cursor: pointer !important;
         }
-        /* Fallback chip when image fails to load */
+        /* URL chip */
         .notion-quill .ql-editor a.ql-url-chip {
           display: inline-flex !important; align-items: center !important;
-          font-size: 12px !important; color: rgba(55,53,47,0.6) !important;
-          background: rgba(55,53,47,0.05) !important; border: 1px solid #e9e9e7 !important;
+          font-size: 12px !important; color: ${t.fgMid} !important;
+          background: ${t.surfaceBg} !important; border: 1px solid ${t.border} !important;
           border-radius: 4px !important; padding: 2px 8px !important;
           text-decoration: none !important; font-family: 'Inter', sans-serif !important;
           transition: background 0.1s !important;
         }
         .notion-quill .ql-editor a.ql-url-chip:hover {
-          background: rgba(55,53,47,0.09) !important; color: #37352f !important;
+          background: ${t.sidebarItemHoverBg} !important; color: ${t.fg} !important;
         }
+        /* Toolbar icons */
+        .notion-quill .ql-toolbar .ql-stroke { stroke: ${t.fgMid} !important; }
+        .notion-quill .ql-toolbar .ql-fill   { fill:   ${t.fgMid} !important; }
         .notion-quill .ql-toolbar button:hover .ql-stroke,
-        .notion-quill .ql-toolbar button.ql-active .ql-stroke { stroke: #37352f !important; }
+        .notion-quill .ql-toolbar button.ql-active .ql-stroke { stroke: ${t.fg} !important; }
         .notion-quill .ql-toolbar button:hover .ql-fill,
-        .notion-quill .ql-toolbar button.ql-active .ql-fill { fill: #37352f !important; }
-        .notion-quill .ql-snow .ql-picker { color: #37352f !important; }
+        .notion-quill .ql-toolbar button.ql-active .ql-fill   { fill:   ${t.fg} !important; }
+        .notion-quill .ql-snow .ql-picker       { color: ${t.fgMid} !important; }
         .notion-quill .ql-snow.ql-toolbar button { border-radius: 3px !important; }
-        .notion-quill .ql-snow.ql-toolbar button:hover { background: rgba(55,53,47,0.08) !important; }
+        .notion-quill .ql-snow.ql-toolbar button:hover { background: ${t.sidebarItemHoverBg} !important; }
 
         .quill-expand-area { overflow: hidden; transition: max-height 0.22s ease, opacity 0.15s ease; }
         .quill-expand-area.open   { max-height: 900px; opacity: 1; }
@@ -339,11 +346,16 @@ export function QuillBlock({
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        style={{ borderRadius: 5, background: selected ? 'rgba(108,99,255,0.05)' : rowBg, transition: 'background 0.1s', outline: selected ? '1px solid rgba(108,99,255,0.15)' : 'none' }}
+        style={{
+          borderRadius: 5,
+          background: selected ? (dark ? 'rgba(108,99,255,0.1)' : 'rgba(108,99,255,0.05)') : (hovered ? t.sidebarItemHoverBg : 'transparent'),
+          outline: selected ? `1px solid rgba(108,99,255,0.2)` : 'none',
+          transition: 'background 0.1s',
+        }}
       >
         {/* Row header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px 6px 8px', minHeight: 34 }}>
-          {/* Checkbox — visible on hover or when selected */}
+          {/* Checkbox */}
           {(hovered || selected) && onToggleSelect ? (
             <button
               onClick={e => { e.stopPropagation(); onToggleSelect() }}
@@ -351,7 +363,7 @@ export function QuillBlock({
             >
               <div style={{
                 width: 14, height: 14, borderRadius: 3, flexShrink: 0,
-                border: selected ? 'none' : '1.5px solid #d0d0ce',
+                border: selected ? 'none' : `1.5px solid ${t.border}`,
                 background: selected ? '#6C63FF' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.12s',
@@ -362,11 +374,12 @@ export function QuillBlock({
           ) : (
             <div style={{ width: 14, flexShrink: 0 }} />
           )}
+
           {/* Chevron */}
           <button
             onClick={() => setExpanded(s => !s)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0, display: 'flex', alignItems: 'center', color: 'rgba(55,53,47,0.3)', borderRadius: 3, transition: 'background 0.1s' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(55,53,47,0.08)'}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0, display: 'flex', alignItems: 'center', color: t.fgLow, borderRadius: 3, transition: 'background 0.1s' }}
+            onMouseEnter={e => e.currentTarget.style.background = t.sidebarItemHoverBg}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <span style={{ transition: 'transform 0.15s', transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)', display: 'flex' }}>
@@ -376,9 +389,9 @@ export function QuillBlock({
             </span>
           </button>
 
-          <span style={{ color: 'rgba(55,53,47,0.4)', flexShrink: 0, display: 'flex' }}><PageIcon /></span>
+          <span style={{ color: t.fgLow, flexShrink: 0, display: 'flex' }}><PageIcon /></span>
 
-          {/* Title */}
+          {/* Title input */}
           <input
             ref={labelRef}
             type="text"
@@ -393,7 +406,11 @@ export function QuillBlock({
             onBlur={e => { if (!e.target.value.trim()) setLabel(autoTitle) }}
             placeholder={autoTitle}
             className="clip-row-title"
-            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, fontWeight: 500, color: '#37352f', fontFamily: 'Inter, sans-serif', cursor: 'text', minWidth: 0 }}
+            style={{
+              flex: 1, border: 'none', outline: 'none', background: 'transparent',
+              fontSize: 13.5, fontWeight: 500, color: t.fg,
+              fontFamily: 'Inter, sans-serif', cursor: 'text', minWidth: 0,
+            }}
           />
 
           {/* Meta + menu */}
@@ -402,13 +419,13 @@ export function QuillBlock({
               <span style={{ fontSize: 10, color: '#10b981', fontWeight: 500, fontFamily: 'Inter, sans-serif' }}>Saved</span>
             )}
             {!saved && (hovered || active) && (
-              <span style={{ fontSize: 11, color: 'rgba(55,53,47,0.3)', fontFamily: 'Inter, sans-serif' }}>{ageLabel(lastEdited)}</span>
+              <span style={{ fontSize: 11, color: t.fgLow, fontFamily: 'Inter, sans-serif' }}>{ageLabel(lastEdited)}</span>
             )}
             {item.url && (
               <a href={item.url} target="_blank" rel="noopener noreferrer" title={item.url}
-                style={{ color: 'rgba(55,53,47,0.4)', textDecoration: 'none', fontSize: 11, display: 'flex', alignItems: 'center', padding: '2px 4px', borderRadius: 3, transition: 'background 0.1s, color 0.1s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(55,53,47,0.08)'; e.currentTarget.style.color = '#37352f' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(55,53,47,0.4)' }}
+                style={{ color: t.fgLow, textDecoration: 'none', fontSize: 11, display: 'flex', alignItems: 'center', padding: '2px 4px', borderRadius: 3, transition: 'background 0.1s, color 0.1s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = t.sidebarItemHoverBg; e.currentTarget.style.color = t.fg }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.fgLow }}
               >↗</a>
             )}
             {(hovered || active) && (
@@ -417,9 +434,13 @@ export function QuillBlock({
           </div>
         </div>
 
-        {/* Editor */}
+        {/* Editor area */}
         <div className={`quill-expand-area ${expanded ? 'open' : 'closed'}`} style={{ marginLeft: 30 }}>
-          <div ref={containerRef} className="notion-quill" style={{ borderTop: '1px solid #e9e9e7', overflow: 'hidden' }} />
+          <div
+            ref={containerRef}
+            className="notion-quill"
+            style={{ borderTop: `1px solid ${t.border}`, overflow: 'hidden' }}
+          />
         </div>
       </div>
     </>

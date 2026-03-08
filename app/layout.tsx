@@ -1,73 +1,69 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://oscil.ai";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://openclips.io";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
 
   title: {
-    default: "Oscil AI — From Idea to Execution",
-    template: "%s · Oscil AI",
+    default: "OpenClips — Clip the open web. Think Deeper.",
+    template: "%s · OpenClips",
   },
 
   description:
-    "Oscil AI is your intelligent workspace for capturing ideas, clipping research, and turning thoughts into action — powered by AI.",
+    "Save anything from the internet into your workspace — articles, links, images, notes. Let AI find connections, generate insights, and help you think.",
 
   keywords: [
-    "Oscil AI",
-    "AI workspace",
-    "idea capture",
+    "OpenClips",
     "web clipper",
+    "AI research tool",
+    "save from web",
     "AI notes",
-    "research tool",
+    "research workspace",
     "knowledge management",
     "AI productivity",
     "clip and annotate",
     "second brain",
+    "browser extension",
+    "AI-powered notes",
   ],
 
-  authors: [{ name: "Oscil AI", url: APP_URL }],
-  creator: "Oscil AI",
-  publisher: "Oscil AI",
+  authors: [{ name: "OpenClips", url: APP_URL }],
+  creator: "OpenClips",
+  publisher: "OpenClips",
 
   openGraph: {
     type: "website",
     url: APP_URL,
-    siteName: "Oscil AI",
-    title: "Oscil AI — From Idea to Execution",
+    siteName: "OpenClips",
+    title: "OpenClips — Clip the open web. Think Deeper.",
     description:
-      "Capture, clip, and annotate anything on the web. Oscil AI helps you go from scattered ideas to clear execution with the power of AI.",
+      "Save anything from the internet into your workspace — articles, links, images, notes. Let AI find connections, generate insights, and help you think.",
     images: [
       {
-        url: "/og-image.png", // place a 1200×630 image in /public
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Oscil AI — From Idea to Execution",
+        alt: "OpenClips — Clip the open web. Think Deeper.",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    site: "@oscilai",       // update to your real handle
-    creator: "@oscilai",
-    title: "Oscil AI — From Idea to Execution",
+    site: "@openclips",
+    creator: "@openclips",
+    title: "OpenClips — Clip the open web. Think Deeper.",
     description:
-      "Your AI-powered workspace for clipping, annotating, and executing ideas.",
+      "Save anything from the internet into your workspace. Let AI find connections, generate insights, and help you think.",
     images: ["/og-image.png"],
   },
 
@@ -96,7 +92,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6366f1",
+  themeColor: "#0a0a0a",
   width: "device-width",
   initialScale: 1,
 };
@@ -106,7 +102,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${dmSans.variable} antialiased`}>
         {children}
       </body>
     </html>

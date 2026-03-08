@@ -8,7 +8,7 @@ import { FONT, Item, Project, norm } from './types'
 import { GLOBAL_STYLES } from './ui'
 import { QuillBlock } from './QuillBlock'
 import { OscilChat } from './oscilChat'
-
+import { useAppTheme } from '../../DShared'
 
 const PlusIcon = () => (
   <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -20,11 +20,6 @@ const ChevronRight = () => (
     <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
-const FolderIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-    <path d="M1 4a1 1 0 011-1h4l1.5 2H14a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V4z" fill="rgba(108,99,255,0.15)" stroke="#6C63FF" strokeWidth="1.1"/>
-  </svg>
-)
 const RefreshIcon = ({ spinning }: { spinning: boolean }) => (
   <svg width={13} height={13} viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
@@ -33,16 +28,11 @@ const RefreshIcon = ({ spinning }: { spinning: boolean }) => (
     <path d="M3 3v5h5" />
   </svg>
 )
-const SearchIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-    <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.3"/>
-    <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-  </svg>
-)
 
 export default function WorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
   const router   = useRouter()
+  const { t }    = useAppTheme()
 
   const [projectId, setProjectId]     = useState('')
   const [project, setProject]         = useState<Project | null>(null)
@@ -56,25 +46,21 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
   const [prefillQuestion, setPrefillQuestion] = useState<string | undefined>(undefined)
   const [newBlockId, setNewBlockId]   = useState<string | null>(null)
 
-  // Split pane drag
-  const [splitPct, setSplitPct] = useState(55) // left pane % when AI open
+  const [splitPct, setSplitPct] = useState(55)
   const dragging = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { params.then(p => setProjectId(p.id)) }, [params])
   useEffect(() => {
     if (!projectId) return
-    // Reset so each project navigation is a clean silent swap (no skeleton flash)
     initialLoadDone.current = false
     setLoading(false)
-    setItems([])        // clear stale clips instantly
-    setProject(null)    // clear stale title
+    setItems([])
+    setProject(null)
     load()
   }, [projectId]) // eslint-disable-line
 
   const load = useCallback(async (silent = false) => {
-    // Only show skeleton on the very first load — subsequent project switches
-    // keep old items visible until new ones arrive (no flicker)
     const isFirst = !initialLoadDone.current
     if (!silent && isFirst) setLoading(true)
 
@@ -85,7 +71,6 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
     if (!proj) { router.push('/dashboard'); return }
     setProject(proj as Project)
 
-    // Fetch projects list and clips in parallel
     const { data } = await supabase
       .from('clips').select('*')
       .eq('project_id', projectId).eq('archived', false)
@@ -153,10 +138,8 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
   function openAI(question?: string, withContext?: boolean) {
     setShowAI(true)
     if (question) setPrefillQuestion(question)
-    // withContext handled by selectedIds already being set before this call
   }
 
-  // Drag-to-resize split pane
   function onDividerMouseDown(e: React.MouseEvent) {
     e.preventDefault()
     dragging.current = true
@@ -180,158 +163,107 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
   const selectedItems = items.filter(i => selectedIds.has(i.id))
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontSize: 14, color: '#37352f', background: '#fff' }}>
+    <div className="h-screen flex flex-col overflow-hidden text-sm" style={{ color: t.fg, background: t.bg }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
-        * { box-sizing: border-box; }
-        .ws-sidebar.collapsed { width: 0; border-right: none; }
-        .sidebar-logo-row:hover { background: rgba(55,53,47,0.06); }
-        .icon-btn { width: 26px; height: 26px; border-radius: 5px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: rgba(55,53,47,0.4); flex-shrink: 0; transition: background 0.1s, color 0.1s; }
-        .icon-btn:hover { background: rgba(55,53,47,0.08); color: #37352f; }
-        .sidebar-item:hover { background: rgba(55,53,47,0.07); color: #37352f; }
-        .sidebar-item.active { background: rgba(55,53,47,0.08); color: #37352f; font-weight: 500; }
-        .sidebar-new-btn:hover { background: rgba(55,53,47,0.07); color: rgba(55,53,47,0.75); }
-
-        .ws-topbar { height: 44px; display: flex; align-items: center; padding: 0 16px; gap: 6px; border-bottom: 1px solid #e9e9e7; background: #fff; position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
-        .breadcrumb { display: flex; align-items: center; gap: 5px; flex: 1; font-size: 13.5px; color: rgba(55,53,47,0.55); }
-        .breadcrumb a { color: rgba(55,53,47,0.55); text-decoration: none; transition: color 0.1s; }
-        .breadcrumb a:hover { color: #37352f; }
-        .breadcrumb .current { color: #37352f; font-weight: 500; }
-
-        .ws-search { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(55,53,47,0.06); border-radius: 6px; border: 1px solid transparent; transition: all 0.15s; width: 180px; }
-        .ws-search:focus-within { background: #fff; border-color: rgba(55,53,47,0.25); box-shadow: 0 0 0 2px rgba(55,53,47,0.06); }
-        .ws-search input { border: none; background: transparent; outline: none; font-size: 13px; color: #37352f; font-family: inherit; flex: 1; width: 100%; }
-        .ws-search input::placeholder { color: rgba(55,53,47,0.35); }
-
-        /* Split layout */
-        .ws-content { flex: 1; min-width: 0; height: 100vh; display: flex; overflow: hidden; }
-        .ws-left { height: 100vh; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-        .ws-body { flex: 1; overflow-y: auto; }
-
-        /* Divider */
-        .split-divider {
-          width: 1px; background: #e9e9e7; flex-shrink: 0; cursor: col-resize; position: relative;
-          transition: background 0.15s;
-        }
+        .icon-btn { width: 26px; height: 26px; border-radius: 5px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: ${t.iconBtnFg}; flex-shrink: 0; transition: background 0.1s, color 0.1s; }
+        .icon-btn:hover { background: ${t.iconBtnHoverBg}; color: ${t.fg}; }
+        .split-divider { width: 1px; background: ${t.border}; flex-shrink: 0; cursor: col-resize; position: relative; transition: background 0.15s; }
         .split-divider:hover, .split-divider.dragging { background: #6C63FF; }
-        .split-divider::after {
-          content: ''; position: absolute; top: 0; left: -4px; right: -4px; bottom: 0;
-        }
-
-        /* Right chat pane */
-        .ws-right { height: 100vh; display: flex; flex-direction: column; overflow: hidden; min-width: 320px; background: #fff; }
-
-        .clips-area { padding: 24px 48px 80px; }
-        @media (max-width: 900px) { .clips-area { padding: 20px 24px 80px; } }
-
-        /* FAB */
-        .ws-fab { position: fixed; bottom: 24px; right: 24px; z-index: 40; display: flex; gap: 8px; align-items: center; }
-        .fab-btn { height: 36px; padding: 0 14px; border-radius: 6px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; transition: opacity 0.15s, box-shadow 0.15s; }
-        .fab-add { width: 36px; height: 36px; padding: 0; border-radius: 6px; border: 1px solid #e9e9e7; background: #fff; color: rgba(55,53,47,0.6); box-shadow: 0 2px 8px rgba(15,15,15,0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; font-family: inherit; font-weight: 300; transition: all 0.1s; }
-        .fab-add:hover { background: rgba(55,53,47,0.06); border-color: rgba(55,53,47,0.3); }
-
-        /* Selection bar */
-        .sel-bar { display: flex; align-items: center; gap: 8px; padding: 0 48px; height: 38px; border-bottom: 1px solid #e9e9e7; background: rgba(108,99,255,0.04); flex-shrink: 0; }
-
-        .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 80px 0 40px; }
-        .empty-title { font-size: 15px; font-weight: 500; color: rgba(55,53,47,0.35); }
-        .empty-sub { font-size: 13px; color: rgba(55,53,47,0.3); }
-
+        .split-divider::after { content: ''; position: absolute; top: 0; left: -4px; right: -4px; bottom: 0; }
+        .skeleton { background: linear-gradient(90deg, ${t.border} 25%, ${t.surfaceBg} 50%, ${t.border} 75%); background-size: 600px 100%; animation: shimmer 1.4s ease infinite; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: -600px 0; } 100% { background-position: 600px 0; } }
         ${GLOBAL_STYLES}
       `}</style>
-      {/* ── Content (split pane when AI open) ── */
-      <div ref={containerRef} className="ws-content">
+
+      <div ref={containerRef} className="flex flex-1 overflow-hidden">
 
         {/* Left: clips */}
-        <div className="ws-left" style={{ width: showAI ? `${splitPct}%` : '100%', transition: dragging.current ? 'none' : 'width 0.2s ease' }}>
-
+        <div
+          className="flex flex-col h-screen overflow-hidden min-w-0"
+          style={{ width: showAI ? `${splitPct}%` : '100%', transition: dragging.current ? 'none' : 'width 0.2s ease' }}
+        >
           {/* Topbar */}
-          <div className="ws-topbar">
-            <div className="breadcrumb">
+          <div className="h-[44px] flex items-center px-4 gap-1.5 flex-shrink-0 sticky top-0 z-10" style={{ borderBottom: `1px solid ${t.border}`, background: t.bg }}>
+            <div className="flex items-center gap-1.5 flex-1 text-[13.5px]" style={{ color: t.fgMid }}>
               <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.5 }}><path d="M6.5 1L1 4.8V12h4V8.5h3V12h4V4.8L6.5 1z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/></svg>
               <ChevronRight />
-              <Link href="/dashboard" className="breadcrumb-link" style={{ color: 'rgba(55,53,47,0.55)', textDecoration: 'none' }}>Projects</Link>
+              <Link href="/dashboard" className="transition-colors hover:no-underline" style={{ color: t.fgMid, textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget.style.color = t.fg)}
+                onMouseLeave={e => (e.currentTarget.style.color = t.fgMid)}
+              >Projects</Link>
               <ChevronRight />
-              <span className="current">{project?.title}</span>
+              <span className="font-medium" style={{ color: t.fg }}>{project?.title}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+            <div className="flex items-center gap-1.5 ml-auto">
               <button className="icon-btn" onClick={handleRefresh} disabled={refreshing} title="Refresh" style={{ width: 28, height: 28 }}>
-                <span style={{ display: 'flex', transition: 'transform 0.5s', transform: refreshing ? 'rotate(360deg)' : 'none' }}>
-                  <RefreshIcon spinning={refreshing} />
-                </span>
+                <RefreshIcon spinning={refreshing} />
               </button>
-              <button onClick={handleAdd} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)', color: '#fff', border: 'none', borderRadius: 5, fontSize: 12.5, fontFamily: 'inherit', fontWeight: 500, cursor: 'pointer', transition: 'opacity 0.1s' }}
-                onMouseOver={e => (e.currentTarget.style.opacity = '0.8')}
-                onMouseOut={e => (e.currentTarget.style.opacity = '1')}
-              ><PlusIcon /> New</button>
+              <button
+                onClick={handleAdd}
+                className="flex items-center gap-1.5 px-2.5 py-[5px] rounded-[5px] text-[12.5px] font-medium text-white border-none font-[inherit] cursor-pointer transition-opacity hover:opacity-80"
+                style={{ background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' }}
+              >
+                <PlusIcon /> New
+              </button>
             </div>
           </div>
 
           {/* Page header */}
-          <div style={{ padding: '16px 48px', borderBottom: '1px solid #e9e9e7', flexShrink: 0 }}>
-            <h1 style={{ fontSize: 14, fontWeight: 600, color: '#37352f', margin: 0 }}>{project?.title}</h1>
-            {project?.description && <p style={{ fontSize: 12, color: 'rgba(55,53,47,0.4)', margin: '2px 0 0' }}>{project.description}</p>}
+          <div className="px-12 py-4 flex-shrink-0" style={{ borderBottom: `1px solid ${t.border}` }}>
+            <h1 className="text-sm font-semibold m-0" style={{ color: t.fg }}>{project?.title}</h1>
+            {project?.description && <p className="text-xs mt-0.5 mb-0" style={{ color: t.fgLow }}>{project.description}</p>}
           </div>
 
-          {/* Meta / selection bar */}
+          {/* Selection / meta bar */}
           {selectedIds.size > 0 ? (
-            <div className="sel-bar">
-              <span style={{ fontSize: 12, color: '#6C63FF', fontWeight: 500 }}>{selectedIds.size} selected</span>
+            <div className="flex items-center gap-2 px-12 h-[38px] flex-shrink-0" style={{ borderBottom: `1px solid ${t.border}`, background: 'rgba(108,99,255,0.04)' }}>
+              <span className="text-xs font-medium" style={{ color: '#6C63FF' }}>{selectedIds.size} selected</span>
               <button
-                onClick={() => { openAI() }}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 10px', background: '#6C63FF', color: '#fff', border: 'none', borderRadius: 4, fontSize: 12, fontFamily: 'inherit', fontWeight: 500, cursor: 'pointer' }}
+                onClick={() => openAI()}
+                className="flex items-center gap-1.5 px-2.5 py-[3px] rounded text-xs font-medium text-white border-none font-[inherit] cursor-pointer"
+                style={{ background: '#6C63FF' }}
               >
                 <svg width="10" height="6" viewBox="0 0 24 14" fill="none"><path d="M0 7 C3 3 5 3 7 7 S11 11 13 7 S17 3 19 7 L24 4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none"/></svg>
                 Ask Oscil AI
               </button>
-              <button onClick={() => setSelectedIds(new Set())} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'rgba(55,53,47,0.4)', fontFamily: 'inherit', padding: '2px 6px', borderRadius: 3 }}>Clear</button>
-              <span style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(55,53,47,0.4)' }}>{items.length} clip{items.length !== 1 ? 's' : ''} total</span>
+              <button onClick={() => setSelectedIds(new Set())} className="text-[11px] px-1.5 py-0.5 rounded border-none bg-transparent font-[inherit] cursor-pointer" style={{ color: t.fgLow }}>Clear</button>
+              <span className="ml-auto text-xs" style={{ color: t.fgLow }}>{items.length} clip{items.length !== 1 ? 's' : ''} total</span>
             </div>
           ) : (
-            <div style={{ padding: '8px 48px', borderBottom: '1px solid #e9e9e7', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-              <span style={{ fontSize: 12, color: 'rgba(55,53,47,0.4)' }}>{items.length} clip{items.length !== 1 ? 's' : ''}</span>
+            <div className="flex items-center gap-3 px-12 py-2 flex-shrink-0" style={{ borderBottom: `1px solid ${t.border}` }}>
+              <span className="text-xs" style={{ color: t.fgLow }}>{items.length} clip{items.length !== 1 ? 's' : ''}</span>
             </div>
           )}
 
-          {/* Clips */}
-          <div className="ws-body">
-            <div className="clips-area">
+          {/* Clips body */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="px-12 pt-6 pb-20 max-[900px]:px-6">
               {loading ? (
-                // Skeleton — sidebar stays visible, only content area shows loader
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 8 }}>
-                  <style>{`
-                    @keyframes shimmer {
-                      0% { background-position: -600px 0; }
-                      100% { background-position: 600px 0; }
-                    }
-                    .skeleton {
-                      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-                      background-size: 600px 100%;
-                      animation: shimmer 1.4s ease infinite;
-                      border-radius: 4px;
-                    }
-                  `}</style>
+                <div className="flex flex-col gap-2 pt-2">
                   {[1,2,3,4,5].map(n => (
-                    <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
-                      <div className="skeleton" style={{ width: 14, height: 14, borderRadius: 3, flexShrink: 0 }} />
-                      <div className="skeleton" style={{ width: 14, height: 14, borderRadius: 3, flexShrink: 0 }} />
-                      <div className="skeleton" style={{ flex: 1, height: 13, maxWidth: `${140 + (n * 37) % 160}px` }} />
+                    <div key={n} className="flex items-center gap-2 py-1.5">
+                      <div className="skeleton shrink-0" style={{ width: 14, height: 14, borderRadius: 3 }} />
+                      <div className="skeleton shrink-0" style={{ width: 14, height: 14, borderRadius: 3 }} />
+                      <div className="skeleton" style={{ height: 13, width: `${140 + (n * 37) % 160}px` }} />
                     </div>
                   ))}
                 </div>
               ) : displayed.length === 0 ? (
-                <div className="empty">
-                  
-                  <div className="empty-title">{search ? `No results for "${search}"` : 'No clips yet'}</div>
-                  <div className="empty-sub">{search ? 'Try a different search term' : 'Press New to create your first clip.'}</div>
+                <div className="flex flex-col items-center justify-center text-center gap-2.5 py-20">
+                  <div className="text-[15px] font-medium" style={{ color: t.fgMid }}>{search ? `No results for "${search}"` : 'No clips yet'}</div>
+                  <div className="text-[13px]" style={{ color: t.fgLow }}>{search ? 'Try a different search term' : 'Press New to create your first clip.'}</div>
                   {!search && (
-                    <button onClick={handleAdd} style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)', color: '#fff', border: 'none', borderRadius: 5, fontSize: 13, fontFamily: 'inherit', fontWeight: 500, cursor: 'pointer' }}>
+                    <button
+                      onClick={handleAdd}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[5px] text-[13px] font-medium text-white border-none font-[inherit] cursor-pointer"
+                      style={{ background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' }}
+                    >
                       <PlusIcon /> New clip
                     </button>
                   )}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div className="flex flex-col gap-px">
                   {displayed.map((item, i) => (
                     <QuillBlock
                       key={item.id} item={item} index={i}
@@ -339,9 +271,9 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
                       onPin={() => togglePin(item)}
                       onArchive={() => archiveItem(item)}
                       onAskAI={(question, withCtx) => {
-                      if (withCtx !== false) toggleSelect(item.id)
-                      openAI(question, withCtx)
-                    }}
+                        if (withCtx !== false) toggleSelect(item.id)
+                        openAI(question, withCtx)
+                      }}
                       isNew={newBlockId === item.id}
                       selected={selectedIds.has(item.id)}
                       onToggleSelect={() => toggleSelect(item.id)}
@@ -355,15 +287,12 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
 
         {/* Divider */}
         {showAI && (
-          <div
-            className="split-divider"
-            onMouseDown={onDividerMouseDown}
-          />
+          <div className="split-divider" onMouseDown={onDividerMouseDown} />
         )}
 
         {/* Right: chat pane */}
         {showAI && (
-          <div className="ws-right" style={{ flex: 1 }}>
+          <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-[320px]" style={{ background: t.bg }}>
             <OscilChat
               selectedItems={selectedItems}
               allItems={items}
@@ -376,24 +305,28 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
         )}
       </div>
 
-}
-
-      {/* ── Content (split pane when AI open) ── */}
-      
-      <div className="ws-fab">
+      {/* FAB */}
+      <div className="fixed bottom-6 right-6 z-40 flex gap-2 items-center">
         <button
           onClick={() => showAI ? setShowAI(false) : openAI()}
-          className="fab-btn"
+          className="h-9 px-3.5 rounded-md border-none text-[13px] font-medium font-[inherit] flex items-center gap-1.5 cursor-pointer transition-opacity hover:opacity-80"
           style={{
-            background: showAI ? 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' : 'rgba(55,53,47,0.08)',
-            color: showAI ? '#fff' : 'rgba(55,53,47,0.7)',
+            background: showAI ? 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' : t.sidebarItemHoverBg,
+            color: showAI ? '#fff' : t.fgMid,
             boxShadow: showAI ? '0 2px 8px rgba(15,15,15,0.15)' : 'none',
           }}
         >
           <svg width="12" height="7" viewBox="0 0 24 14" fill="none"><path d="M0 7 C3 3 5 3 7 7 S11 11 13 7 S17 3 19 7 L24 4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none"/></svg>
           {showAI ? 'Close' : 'Ask AI'}
         </button>
-        <button className="fab-add" onClick={handleAdd} title="New clip">+</button>
+        <button
+          onClick={handleAdd}
+          title="New clip"
+          className="w-9 h-9 rounded-md flex items-center justify-center text-lg font-light cursor-pointer transition-colors font-[inherit]"
+          style={{ border: `1px solid ${t.border}`, background: t.bg, color: t.fgMid, boxShadow: t.shadow }}
+          onMouseEnter={e => (e.currentTarget.style.background = t.sidebarItemHoverBg)}
+          onMouseLeave={e => (e.currentTarget.style.background = t.bg)}
+        >+</button>
       </div>
     </div>
   )
