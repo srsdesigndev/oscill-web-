@@ -3,7 +3,7 @@
 import { t, accent } from './shared'
 
 const STEPS = [
-  { n: '01', title: 'Install the extension', body: "Add OpenClips to Chrome in seconds. One click clips any text, image, or URL from any page you're browsing — no interruption to your flow." },
+  { n: '01', title: 'Install the extension', body: "Add ProductName to Chrome in seconds. One click clips any text, image, or URL from any page you're browsing — no interruption to your flow." },
   { n: '02', title: 'Organise into projects', body: 'Create a project for each topic. Clips drop straight in. The sidebar stays with you as you switch between research sessions.' },
   { n: '03', title: 'Ask AI anything',        body: 'Select clips and ask questions. Get answers grounded entirely in your own saved research — not the open web, not guesswork.' },
 ]

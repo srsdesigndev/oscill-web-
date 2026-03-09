@@ -1,5 +1,7 @@
 'use client'
 
+import { CTABanner } from "./CTA"
+import { FAQ } from "./FAQ"
 import { Features } from "./Features"
 import { Footer } from "./Footer"
 import { Hero } from "./Hero"
@@ -8,7 +10,7 @@ import { Nav } from "./Nav"
 import { Pricing } from "./Pricing"
 import { Problem } from "./Problem"
 import { GLOBAL_CSS, t } from "./shared"
-import { CTABanner, Extension, Testimonials } from "./Social"
+import { Extension, Testimonials } from "./Social"
 import { UseCases } from "./UseCases"
 
 export default function LandingPage() {
@@ -41,7 +43,10 @@ export default function LandingPage() {
       {/* 8. Pricing — what does it cost? */}
       <Pricing />
 
-      {/* 9. Final push — last chance to convert */}
+      {/* 9. FAQs — handle last-minute objections */}
+      <FAQ />
+
+      {/* 10. Final push — last chance to convert */}
       <CTABanner />
 
       <Footer />

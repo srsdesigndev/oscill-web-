@@ -31,8 +31,8 @@ export const t = {
   secFg:     'rgba(255,255,255,0.55)',
 }
 
-// ── OpenClips Logo ────────────────────────────────────────────────────────────
-export const OpenClipsLogo = ({ size = 22, color = 'currentColor' }: { size?: number; color?: string; id?: string }) => (
+// ── ProductName Logo ────────────────────────────────────────────────────────────
+export const ProductNameLogo = ({ size = 22, color = 'currentColor' }: { size?: number; color?: string; id?: string }) => (
   <svg width={size} height={size} viewBox="0 0 31 31" fill="none">
     <path fillRule="evenodd" clipRule="evenodd" d="M22.3889 25.8333H6.88889C6.43213 25.8333 5.99407 25.6519 5.67109 25.3289C5.34811 25.0059 5.16667 24.5679 5.16667 24.1111V8.61111H0V5.16667H5.16667V0H8.61111V5.16667H24.1111C24.5679 5.16667 25.0059 5.34811 25.3289 5.67109C25.6519 5.99407 25.8333 6.43213 25.8333 6.88889V22.3889H31V25.8333H25.8333V31H22.3889V25.8333ZM22.3889 22.3889V8.61111H8.61111V22.3889H22.3889Z" fill={color}/>
   </svg>

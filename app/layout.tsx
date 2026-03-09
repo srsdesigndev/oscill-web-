@@ -8,21 +8,21 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://openclips.io";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://ProductName.io";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
 
   title: {
-    default: "OpenClips — Clip the open web. Think Deeper.",
-    template: "%s · OpenClips",
+    default: "ProductName — Clip the open web. Think Deeper.",
+    template: "%s · ProductName",
   },
 
   description:
     "Save anything from the internet into your workspace — articles, links, images, notes. Let AI find connections, generate insights, and help you think.",
 
   keywords: [
-    "OpenClips",
+    "ProductName",
     "web clipper",
     "AI research tool",
     "save from web",
@@ -36,15 +36,15 @@ export const metadata: Metadata = {
     "AI-powered notes",
   ],
 
-  authors: [{ name: "OpenClips", url: APP_URL }],
-  creator: "OpenClips",
-  publisher: "OpenClips",
+  authors: [{ name: "ProductName", url: APP_URL }],
+  creator: "ProductName",
+  publisher: "ProductName",
 
   openGraph: {
     type: "website",
     url: APP_URL,
-    siteName: "OpenClips",
-    title: "OpenClips — Clip the open web. Think Deeper.",
+    siteName: "ProductName",
+    title: "ProductName — Clip the open web. Think Deeper.",
     description:
       "Save anything from the internet into your workspace — articles, links, images, notes. Let AI find connections, generate insights, and help you think.",
     images: [
@@ -52,16 +52,16 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "OpenClips — Clip the open web. Think Deeper.",
+        alt: "ProductName — Clip the open web. Think Deeper.",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    site: "@openclips",
-    creator: "@openclips",
-    title: "OpenClips — Clip the open web. Think Deeper.",
+    site: "@ProductName",
+    creator: "@ProductName",
+    title: "ProductName — Clip the open web. Think Deeper.",
     description:
       "Save anything from the internet into your workspace. Let AI find connections, generate insights, and help you think.",
     images: ["/og-image.png"],

@@ -13,21 +13,78 @@ const PlusIcon = () => (
     <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 )
-
 const ChevronRight = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
     <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
-
 const FolderIcon = ({ color }: { color: string }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path d="M1 4a1 1 0 011-1h4l1.5 2H14a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V4z" fill={color} fillOpacity="0.2" stroke={color} strokeWidth="1.1"/>
   </svg>
 )
+const DotsIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+    <circle cx="3"  cy="8" r="1.2" fill="currentColor"/>
+    <circle cx="8"  cy="8" r="1.2" fill="currentColor"/>
+    <circle cx="13" cy="8" r="1.2" fill="currentColor"/>
+  </svg>
+)
 
 const dotColors = ['#6C63FF', '#4ACFD2', '#F0B400', '#E23E2B']
 
+// ── Row dot menu ──────────────────────────────────────────────────────────────
+function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const { t } = useAppTheme()
+
+  useEffect(() => {
+    if (!open) return
+    const h = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [open])
+
+  const menuItem = (label: string, icon: string, onClick: () => void, danger = false) => (
+    <button
+      key={label}
+      onClick={() => { onClick(); setOpen(false) }}
+      className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-[12.5px] rounded border-none cursor-pointer font-[inherit]"
+      style={{ background: 'none', color: danger ? '#e23e2b' : t.fg }}
+      onMouseEnter={e => (e.currentTarget.style.background = danger ? 'rgba(226,62,43,0.08)' : t.sidebarItemHoverBg)}
+      onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+    >
+      <span>{icon}</span>{label}
+    </button>
+  )
+
+  return (
+    <div ref={ref} className="relative" onClick={e => e.preventDefault()}>
+      <button
+        onClick={e => { e.preventDefault(); e.stopPropagation(); setOpen(s => !s) }}
+        className="flex items-center justify-center w-6 h-6 rounded border-none cursor-pointer"
+        style={{ background: open ? t.sidebarItemHoverBg : 'none', color: t.fgLow }}
+        onMouseEnter={e => { e.currentTarget.style.background = t.sidebarItemHoverBg; e.currentTarget.style.color = t.fg }}
+        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = t.fgLow } }}
+      >
+        <DotsIcon />
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 rounded-md p-0.5 z-50 min-w-[140px]"
+          style={{ background: t.modalBg, border: `1px solid ${t.border}`, boxShadow: t.shadowModal }}
+        >
+          {menuItem('Edit', '✎', onEdit)}
+          <div style={{ height: 1, background: t.border, margin: '2px 0' }} />
+          {menuItem('Delete', '✕', onDelete, true)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 export default function DashboardClient({
   initialProjects,
   initialCount,
@@ -43,20 +100,32 @@ export default function DashboardClient({
 
   const [projects, setProjects] = useState<ProjectWithDate[]>(initialProjects)
   const [count, setCount] = useState(initialCount)
-  const [showModal, setShowModal] = useState(false)
+
+  // modal: null = closed, create = new, edit = editing existing
+  const [modal, setModal] = useState<{ mode: 'create' | 'edit'; project?: ProjectWithDate } | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // delete confirm
+  const [confirmDelete, setConfirmDelete] = useState<ProjectWithDate | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
   const titleRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (showModal) setTimeout(() => titleRef.current?.focus(), 80)
-    else { setTitle(''); setDescription(''); setError('') }
-  }, [showModal])
+  function openCreate() { setModal({ mode: 'create' }); setTitle(''); setDescription(''); setError('') }
+  function openEdit(p: ProjectWithDate) { setModal({ mode: 'edit', project: p }); setTitle(p.title); setDescription(p.description ?? ''); setError('') }
+  function closeModal() { setModal(null); setTitle(''); setDescription(''); setError('') }
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowModal(false) }
+    if (modal) setTimeout(() => titleRef.current?.focus(), 80)
+  }, [modal])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { closeModal(); setConfirmDelete(null) }
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [])
@@ -73,10 +142,39 @@ export default function DashboardClient({
     if (err) { setError(err.message); setLoading(false); return }
     setProjects(prev => [data, ...prev])
     setCount(c => c + 1)
-    setShowModal(false)
+    closeModal()
     setLoading(false)
     router.push(`/dashboard/project/${data.id}`)
   }
+
+  async function save() {
+    if (!title.trim()) { setError('Give your project a title.'); return }
+    if (!modal?.project) return
+    setLoading(true); setError('')
+    const { error: err } = await supabase
+      .from('projects')
+      .update({ title: title.trim(), description: description.trim() || null })
+      .eq('id', modal.project.id)
+    if (err) { setError(err.message); setLoading(false); return }
+    setProjects(prev => prev.map(p =>
+      p.id === modal.project!.id
+        ? { ...p, title: title.trim(), description: description.trim() || null }
+        : p
+    ))
+    closeModal()
+    setLoading(false)
+  }
+
+  async function deleteProject() {
+    if (!confirmDelete) return
+    setDeleting(true)
+    await supabase.from('projects').delete().eq('id', confirmDelete.id)
+    setProjects(prev => prev.filter(p => p.id !== confirmDelete.id))
+    setConfirmDelete(null)
+    setDeleting(false)
+  }
+
+  const isEdit = modal?.mode === 'edit'
 
   return (
     <>
@@ -96,8 +194,8 @@ export default function DashboardClient({
               <span className="font-medium" style={{ color: t.fg }}>Projects</span>
             </div>
             <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[5px] text-[13px] font-medium text-white transition-opacity hover:opacity-80"
+              onClick={openCreate}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[5px] text-[13px] font-medium text-white transition-opacity hover:opacity-80 border-none cursor-pointer"
               style={{ background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' }}
             >
               <PlusIcon /> New
@@ -127,8 +225,8 @@ export default function DashboardClient({
                 <div className="text-base font-medium mb-2" style={{ color: t.fgMid }}>No projects yet</div>
                 <div className="text-[13px] mb-5" style={{ color: t.fgLow }}>Create one and start clipping from the web.</div>
                 <button
-                  onClick={() => setShowModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-md text-[13.5px] font-medium text-white transition-opacity hover:opacity-80"
+                  onClick={openCreate}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-[7px] rounded-md text-[13.5px] font-medium text-white transition-opacity hover:opacity-80 border-none cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' }}
                 >
                   <PlusIcon /> New project
@@ -140,36 +238,41 @@ export default function DashboardClient({
                 <div className="flex items-center px-3 h-[34px] mb-0.5" style={{ borderBottom: `1px solid ${t.border}` }}>
                   <div className="flex-1 text-[11px] font-medium uppercase tracking-widest" style={{ color: t.fgLow }}>Name</div>
                   <div className="w-[120px] text-right text-[11px] font-medium uppercase tracking-widest" style={{ color: t.fgLow }}>Created</div>
+                  <div className="w-8" />
                 </div>
 
                 {projects.map((p, i) => (
-                  <Link
+                  <div
                     key={p.id}
-                    href={`/dashboard/project/${p.id}`}
-                    className="group flex items-center gap-2.5 px-3 h-10 rounded-md no-underline transition-colors"
-                    style={{ color: t.fg }}
+                    className="group flex items-center gap-2.5 px-3 h-10 rounded-md transition-colors"
                     onMouseEnter={e => (e.currentTarget.style.background = t.sidebarItemHoverBg)}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <div className="flex-1 flex items-center gap-2 min-w-0 text-sm">
+                    <Link
+                      href={`/dashboard/project/${p.id}`}
+                      className="flex-1 flex items-center gap-2 min-w-0 text-sm no-underline h-full"
+                      style={{ color: t.fg }}
+                    >
                       <span className="shrink-0"><FolderIcon color={dotColors[i % 4]} /></span>
                       <span className="truncate">{p.title}</span>
                       {p.description && (
                         <span className="text-[13px] truncate max-w-[260px]" style={{ color: t.fgMid }}>{p.description}</span>
                       )}
-                    </div>
+                    </Link>
+
                     <div className="text-xs w-[120px] text-right shrink-0" style={{ color: t.fgLow }}>
                       {new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: t.fgLow }}>
-                      <ChevronRight />
-                    </span>
-                  </Link>
+
+                    <div className="w-8 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                      <RowMenu onEdit={() => openEdit(p)} onDelete={() => setConfirmDelete(p)} />
+                    </div>
+                  </div>
                 ))}
 
                 <button
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 px-3 h-9 w-full rounded-md mt-1 text-sm text-left font-[inherit] border-none cursor-pointer transition-colors"
+                  onClick={openCreate}
+                  className="flex items-center gap-2 px-3 h-9 w-full rounded-md mt-1 text-sm text-left font-[inherit] border-none cursor-pointer"
                   style={{ background: 'none', color: t.fgMid }}
                   onMouseEnter={e => (e.currentTarget.style.background = t.sidebarItemHoverBg)}
                   onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -183,12 +286,12 @@ export default function DashboardClient({
         </main>
       </div>
 
-      {/* Modal */}
-      {showModal && (
+      {/* ── Create / Edit Modal ── */}
+      {modal && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-5"
           style={{ background: 'rgba(15,15,15,0.5)' }}
-          onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}
+          onClick={e => { if (e.target === e.currentTarget) closeModal() }}
         >
           <div
             className="w-full max-w-[460px] rounded-lg overflow-hidden"
@@ -198,7 +301,7 @@ export default function DashboardClient({
 
             <div className="px-6 pt-6 pb-5">
               <div className="text-[11px] font-semibold uppercase tracking-[0.07em] mb-4" style={{ color: t.fgMid }}>
-                New project
+                {isEdit ? 'Edit project' : 'New project'}
               </div>
 
               {error && (
@@ -213,7 +316,7 @@ export default function DashboardClient({
                 placeholder="Untitled project"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && create()}
+                onKeyDown={e => e.key === 'Enter' && (isEdit ? save() : create())}
                 className="w-full border-0 border-b-[1.5px] pb-2 pt-1 text-[22px] font-semibold bg-transparent outline-none mb-3 font-[inherit]"
                 style={{ borderColor: t.border, color: t.fg }}
                 onFocus={e => (e.currentTarget.style.borderColor = t.fg)}
@@ -234,7 +337,7 @@ export default function DashboardClient({
               style={{ borderTop: `1px solid ${t.border}`, background: t.modalFooterBg }}
             >
               <button
-                onClick={() => setShowModal(false)}
+                onClick={closeModal}
                 className="px-3.5 py-1.5 rounded-[5px] text-[13.5px] font-medium font-[inherit] cursor-pointer"
                 style={{ border: `1px solid ${t.border}`, background: t.cardBg, color: t.fgMid }}
                 onMouseEnter={e => (e.currentTarget.style.background = t.sidebarItemHoverBg)}
@@ -243,12 +346,60 @@ export default function DashboardClient({
                 Cancel
               </button>
               <button
-                onClick={create}
+                onClick={isEdit ? save : create}
                 disabled={loading}
                 className="px-3.5 py-1.5 rounded-[5px] text-[13.5px] font-medium text-white border-none font-[inherit] transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 style={{ background: 'linear-gradient(135deg, #6B8DF5 0%, #7B5CE6 100%)' }}
               >
-                {loading ? 'Creating...' : 'Create project'}
+                {loading
+                  ? (isEdit ? 'Saving...' : 'Creating...')
+                  : (isEdit ? 'Save changes' : 'Create project')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirm Modal ── */}
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-5"
+          style={{ background: 'rgba(15,15,15,0.5)' }}
+          onClick={e => { if (e.target === e.currentTarget) setConfirmDelete(null) }}
+        >
+          <div
+            className="w-full max-w-[400px] rounded-lg overflow-hidden"
+            style={{ background: t.modalBg, boxShadow: t.shadowModal, border: `1px solid ${t.border}` }}
+          >
+            <div className="px-7 pt-7 pb-2 flex justify-center">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1.5px solid rgba(239,68,68,0.25)' }}>
+                🗑
+              </div>
+            </div>
+            <div className="px-7 py-4 text-center">
+              <p className="text-sm font-bold mb-1.5" style={{ color: t.fg }}>Delete "{confirmDelete.title}"?</p>
+              <p className="text-xs leading-relaxed" style={{ color: t.fgMid }}>
+                This will permanently delete the project and all its clips. This cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-2 px-5 pb-5">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="flex-1 py-2 rounded-[7px] text-[13px] font-semibold font-[inherit] cursor-pointer transition-colors"
+                style={{ border: `1.5px solid ${t.border}`, background: t.cardBg, color: t.fg }}
+                onMouseEnter={e => (e.currentTarget.style.background = t.sidebarItemHoverBg)}
+                onMouseLeave={e => (e.currentTarget.style.background = t.cardBg)}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteProject}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-[7px] text-[13px] font-semibold text-white border-none font-[inherit] cursor-pointer transition-opacity hover:opacity-80 disabled:opacity-50"
+                style={{ background: '#ef4444' }}
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
@@ -256,8 +407,6 @@ export default function DashboardClient({
       )}
 
       <style>{`
-        @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes modal-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
         input::placeholder, textarea::placeholder { color: ${t.fgLow}; }
       `}</style>
     </>

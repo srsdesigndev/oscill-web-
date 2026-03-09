@@ -24,3 +24,25 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Add to globals.css ── */
+.cf-dot {
+  offset-anchor: center;
+  animation: cf-travel 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.cf-dot-1 { offset-path: path("M 31 10 v 15 q 0 5 5 5 h 59 q 5 0 5 5 v 25"); animation-delay: 0s; }
+.cf-dot-2 { offset-path: path("M 77 10 v 10 q 0 5 5 5 h 13 q 5 0 5 5 v 25"); animation-delay: 0.7s; }
+.cf-dot-3 { offset-path: path("M 124 10 v 10 q 0 5 -5 5 h -14 q -5 0 -5 5 v 25"); animation-delay: 1.4s; }
+.cf-dot-4 { offset-path: path("M 170 10 v 15 q 0 5 -5 5 h -60 q -5 0 -5 5 v 25"); animation-delay: 2.1s; }
+@keyframes cf-travel {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.cf-wire-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: cf-draw 1s cubic-bezier(0.25, 0.1, 0.5, 1) forwards;
+}
+@keyframes cf-draw { to { stroke-dashoffset: 0; } }

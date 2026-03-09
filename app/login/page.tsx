@@ -326,7 +326,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="login-footer">© OpenClips {new Date().getFullYear()}</div>
+          <div className="login-footer">© ProductName {new Date().getFullYear()}</div>
         </div>
 
         {/* ── RIGHT ── */}

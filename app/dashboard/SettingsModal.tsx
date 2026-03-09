@@ -281,7 +281,7 @@ export function SettingsModal({ userEmail, onClose }: {
             </div>
 
             <div style={{ fontSize: 10.5, color: t.fgLow, padding: '0 8px', lineHeight: 1.7 }}>
-              OpenClips<br />
+              ProductName<br />
               <span style={{ color: t.fgLow, opacity: 0.7 }}>Early Access</span>
             </div>
           </div>
