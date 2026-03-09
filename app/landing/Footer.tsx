@@ -13,10 +13,10 @@ const LINKS: Record<string, LinkItem[]> = {
     { label: 'Pricing', href: '/pricing' },
   ],
   Resources: [
-    { label: 'Docs', href: '/docs' },
-    { label: 'Changelog', href: '/changelog' },
-    { label: 'Status', href: '/status' },
-    { label: 'Blog', href: '/blog' },
+    { label: 'Docs', href: '/resources/docs' },
+    { label: 'Changelog', href: '/resources/changelog' },
+    { label: 'Status', href: '/resources/status' },
+    { label: 'Blog', href: '/resources/blogs' },
   ],
   Company: [
     { label: 'About', href: '/about' },
