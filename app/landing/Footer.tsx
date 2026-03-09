@@ -3,18 +3,47 @@
 import Link from 'next/link'
 import { t, accent, ClippxLogo, BrandName } from './shared'
 
-const LINKS = {
-  Product:   ['Features', 'How it works', 'Extension', 'Pricing'],
-  Resources: ['Docs', 'Changelog', 'Status', 'Blog'],
-  Company:   ['About', 'Contact', 'Careers'],
-  Legal:     ['Privacy', 'Terms', 'Cookie policy'],
+type LinkItem = { label: string; href: string }
+
+const LINKS: Record<string, LinkItem[]> = {
+  Product: [
+    { label: 'Features', href: '/features' },
+    { label: 'How it works', href: '/how-it-works' },
+    { label: 'Extension', href: '/extension' },
+    { label: 'Pricing', href: '/pricing' },
+  ],
+  Resources: [
+    { label: 'Docs', href: '/docs' },
+    { label: 'Changelog', href: '/changelog' },
+    { label: 'Status', href: '/status' },
+    { label: 'Blog', href: '/blog' },
+  ],
+  Company: [
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
+    { label: 'Careers', href: '/careers' },
+  ],
+  Legal: [
+    { label: 'Privacy', href: '/legal/privacy' },
+    { label: 'Terms', href: '/legal/terms' },
+    { label: 'Cookie policy', href: '/legal/cookies' },
+  ],
+  Support: [
+    { label: 'Feature request', href: '/support/feature-request' },
+    { label: 'Report abuse', href: '/support/report-abuse' },
+  ],
 }
+
+const SOCIALS: LinkItem[] = [
+  { label: 'Twitter / X', href: 'https://x.com/clippx' },
+  { label: 'Discord', href: 'https://discord.gg/clippx' },
+]
 
 export function Footer() {
   return (
     <footer style={{ borderTop: `1px solid ${t.border}`, padding: '64px 40px 40px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(4, 1fr)', gap: 40, marginBottom: 56 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(5, 1fr)', gap: 40, marginBottom: 56 }}>
 
           {/* Brand */}
           <div>
@@ -30,14 +59,50 @@ export function Footer() {
           {/* Link columns */}
           {Object.entries(LINKS).map(([section, items]) => (
             <div key={section}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', color: t.fgLow, marginBottom: 16 }}>{section}</div>
+
+              {/* Section heading — Resources is a link itself */}
+              {section === 'Resources' ? (
+                <Link
+                  href="/resources"
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '1.5px',
+                    textTransform: 'uppercase',
+                    color: t.fgLow,
+                    marginBottom: 16,
+                    textDecoration: 'none',
+                  }}
+                >
+                  {section}
+                </Link>
+              ) : (
+                <p style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '1.5px',
+                  textTransform: 'uppercase',
+                  color: t.fgLow,
+                  marginBottom: 16,
+                  margin: '0 0 16px',
+                }}>
+                  {section}
+                </p>
+              )}
+
+              {/* Items */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {items.map(item => (
-                  <a key={item} href="#" style={{ fontSize: 13, color: t.fgMid, textDecoration: 'none', transition: 'color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = t.fg)}
-                    onMouseLeave={e => (e.currentTarget.style.color = t.fgMid)}>
-                    {item}
-                  </a>
+                {items.map((item: LinkItem) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    style={{ fontSize: 13, color: t.fgMid, textDecoration: 'none', transition: 'color 0.15s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = t.fg }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = t.fgMid }}
+                  >
+                    {item.label}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -45,14 +110,28 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingTop: 24, borderTop: `1px solid ${t.border}` }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+          paddingTop: 24,
+          borderTop: `1px solid ${t.border}`,
+        }}>
           <span style={{ fontSize: 12, color: t.fgLow }}>© clippx 2026. All rights reserved.</span>
           <div style={{ display: 'flex', gap: 20 }}>
-            {['Twitter / X', 'GitHub', 'Discord'].map(s => (
-              <a key={s} href="#" style={{ fontSize: 12, color: t.fgLow, textDecoration: 'none', transition: 'color 0.15s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = accent.primary)}
-                onMouseLeave={e => (e.currentTarget.style.color = t.fgLow)}>
-                {s}
+            {SOCIALS.map((social: LinkItem) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: t.fgLow, textDecoration: 'none', transition: 'color 0.15s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = accent.primary }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = t.fgLow }}
+              >
+                {social.label}
               </a>
             ))}
           </div>

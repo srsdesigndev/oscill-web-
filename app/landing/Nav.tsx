@@ -2,13 +2,16 @@
 
 import Link from 'next/link'
 import { t, accent, ClippxLogo, BrandName } from './shared'
+import { Ribbon } from './Ribbon'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const NAV_LINKS = [
+  { label: 'Products',     href: '#products'     },
   { label: 'Features',     href: '#features'     },
   { label: 'How it works', href: '#how-it-works' },
-  { label: 'Use cases',    href: '#use-cases'    },
+  { label: 'Pricing',      href: '#pricing'      },
   { label: 'Extension',    href: '#extension'    },
+  { label: 'Support',    href: '#extension'    },
 ]
 
 // ── Styles ────────────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import { HowItWorks } from "./HowItWorks"
 import { Nav } from "./Nav"
 import { Pricing } from "./Pricing"
 import { Problem } from "./Problem"
+import { Ribbon } from "./Ribbon"
 import { GLOBAL_CSS, t } from "./shared"
 import { Extension, Testimonials } from "./Social"
 import { UseCases } from "./UseCases"
@@ -17,6 +18,9 @@ export default function LandingPage() {
   return (
     <div style={{ minHeight: '100vh', background: t.bg, color: t.fg, fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden' }}>
       <style>{GLOBAL_CSS}</style>
+      
+      <Ribbon/>
+      
       <Nav />
 
       {/* 1. Hook — what is this, why should I care */}
