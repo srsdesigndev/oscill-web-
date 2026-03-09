@@ -90,7 +90,7 @@ export function useAppTheme() {
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'ProductName-theme'
+const STORAGE_KEY = 'clippx-theme'
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const [dark, setDark] = useState(false) // default light, updated on mount

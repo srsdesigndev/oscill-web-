@@ -59,7 +59,7 @@ export function UseCases() {
           Built for anyone<br />who thinks for a living.
         </h2>
         <p style={{ fontSize: 17, color: t.fgMid, fontWeight: 300, maxWidth: 480, margin: 0, lineHeight: 1.75 }}>
-          Whether you research, build, study, or write — ProductName adapts to how your mind works.
+          Whether you research, build, study, or write — clippx adapts to how your mind works.
         </p>
       </div>
 

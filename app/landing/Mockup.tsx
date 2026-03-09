@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { t, accent, ProductNameLogo } from './shared'
+import { t, accent, ClippxLogo } from './shared'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Clip    = { id: number; color: string; title: string; body: string; new?: boolean }
@@ -333,7 +333,7 @@ export function AppMockup() {
           <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
             <div style={{ background:'#1e1e21', borderRadius:7, height:24, width:270, display:'flex', alignItems:'center', gap:7, padding:'0 11px', border:'1px solid rgba(255,255,255,0.07)' }}>
               <div style={{ width:5, height:5, borderRadius:'50%', background:accent.primary, flexShrink:0, boxShadow:`0 0 5px ${accent.primary}` }} />
-              <span className="url-text" style={{ fontSize:10.5, color:'rgba(255,255,255,0.38)', letterSpacing:'0.01em' }}>app.ProductName.io/dashboard</span>
+              <span className="url-text" style={{ fontSize:10.5, color:'rgba(255,255,255,0.38)', letterSpacing:'0.01em' }}>app.clippx.io/dashboard</span>
             </div>
           </div>
           {/* Live pill */}
@@ -350,7 +350,7 @@ export function AppMockup() {
           <div style={{ width:196, flexShrink:0, background:'#0c0c0e', borderRight:`1px solid rgba(255,255,255,0.06)`, padding:'14px 8px', display:'flex', flexDirection:'column', gap:2 }}>
             {/* Brand */}
             <div style={{ display:'flex', alignItems:'center', gap:8, padding:'4px 8px', marginBottom:14 }}>
-              <ProductNameLogo size={15} color={accent.primary} />
+              <ClippxLogo size={15} color={accent.primary} />
               <span style={{ fontFamily:"'Michroma',sans-serif", fontSize:10.5, color:'rgba(255,255,255,0.9)', fontWeight:400 }}>
                 Open<strong>Clips</strong>
               </span>

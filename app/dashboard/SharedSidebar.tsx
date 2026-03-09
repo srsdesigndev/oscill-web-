@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Project } from './project/[id]/types'
 import { SettingsModal } from './SettingsModal'
 import { useAppTheme, accent } from './DShared'
+import { BrandName, ClippxLogo } from '../landing/shared'
 
 type ProjectWithDate = Project & { created_at: string }
 
@@ -44,7 +45,7 @@ const SignOutIcon = () => (
     <path d="M5 11H2a1 1 0 01-1-1V3a1 1 0 011-1h3M9 9l3-2.5L9 4M5 6.5h7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
-const OpenClipsLogo = () => (
+const ProductNameLogo = () => (
   <svg width="18" height="18" viewBox="0 0 31 31" fill="none">
     <path fillRule="evenodd" clipRule="evenodd" d="M22.3889 25.8333H6.88889C6.43213 25.8333 5.99407 25.6519 5.67109 25.3289C5.34811 25.0059 5.16667 24.5679 5.16667 24.1111V8.61111H0V5.16667H5.16667V0H8.61111V5.16667H24.1111C24.5679 5.16667 25.0059 5.34811 25.3289 5.67109C25.6519 5.99407 25.8333 6.43213 25.8333 6.88889V22.3889H31V25.8333H25.8333V31H22.3889V25.8333ZM22.3889 22.3889V8.61111H8.61111V22.3889H22.3889Z" fill="url(#sb_grad)"/>
     <defs>
@@ -293,10 +294,11 @@ export function SharedSidebar({
           <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, padding: '4px 7px', borderRadius: 8, transition: 'background 0.12s' }}
             onMouseEnter={e => (e.currentTarget.style.background = t.sidebarItemHoverBg)}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-            <OpenClipsLogo />
-            <span style={{ fontSize: 13, fontFamily: "'Michroma', sans-serif", fontWeight: 400, color: t.fg, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Open<strong>Clips</strong>
-            </span>
+          {/* Logo */}
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ClippxLogo size={22} color={accent.primary} />
+            <BrandName size={14} color={t.fg} />
+          </Link>
           </Link>
           <button className="sb-icon-btn" onClick={onToggle}><CollapseIcon /></button>
         </div>

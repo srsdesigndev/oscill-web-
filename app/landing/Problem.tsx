@@ -122,7 +122,7 @@ export function Problem() {
             The internet is messy.<br />Your knowledge doesn't have to be.
           </h2>
           <p style={{ fontSize: 17, color: t.fgMid, fontWeight: 300, maxWidth: 520, margin: 0, lineHeight: 1.75 }}>
-            ProductName turns scattered web research into an organised, AI-powered knowledge base — built the way your brain works.
+            clippx turns scattered web research into an organised, AI-powered knowledge base — built the way your brain works.
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export function Problem() {
                 className={`toggle-pill ${isAfter ? 'active' : ''}`}
                 onClick={() => setIsAfter(true)}
                 style={{ fontSize: 13, fontWeight: 500, padding: '9px 22px', borderRadius: 9, border: '1px solid transparent', background: 'transparent', color: t.fgMid, cursor: 'pointer' }}>
-                After ProductName
+                After clippx
               </button>
             </div>
 
@@ -169,7 +169,7 @@ export function Problem() {
                 transition: 'all 0.35s ease',
               }} />
               <span style={{ fontSize: 12, fontWeight: 500, color: isAfter ? accent.primary : t.fgLow, transition: 'color 0.35s ease' }}>
-                {isAfter ? 'With ProductName' : 'Without ProductName'}
+                {isAfter ? 'With clippx' : 'Without clippx'}
               </span>
             </div>
           </div>

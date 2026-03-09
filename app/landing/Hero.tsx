@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { t, accent, ProductNameLogo, ArrowIcon } from './shared'
+import { t, accent, ClippxLogo, ArrowIcon } from './shared'
 import { AppMockup } from './Mockup'
 
 // ── Types ─────────────────────────────────────────────────────────────────────

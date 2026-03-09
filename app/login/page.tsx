@@ -3,20 +3,21 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { t, accent } from '@/app/landing/shared'
+import { t, accent, BrandName, ClippxLogo } from '@/app/landing/shared'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
   const supabase = createClient()
-  const [email, setEmail]       = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [mode, setMode]         = useState<'signin' | 'signup'>('signin')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
 
   async function handleSubmit() {
     setError('')
-    if (!email)    { setError('Enter your email.');    return }
+    if (!email) { setError('Enter your email.'); return }
     if (!password) { setError('Enter your password.'); return }
     setLoading(true)
 
@@ -300,12 +301,11 @@ export default function LoginPage() {
           <div className="login-left-orb-2" />
 
           {/* Logo */}
-          <a href="/" className="login-logo">
-            <svg width="22" height="22" viewBox="0 0 31 31" fill="none">
-              <path fillRule="evenodd" clipRule="evenodd" d="M22.3889 25.8333H6.88889C6.43213 25.8333 5.99407 25.6519 5.67109 25.3289C5.34811 25.0059 5.16667 24.5679 5.16667 24.1111V8.61111H0V5.16667H5.16667V0H8.61111V5.16667H24.1111C24.5679 5.16667 25.0059 5.34811 25.3289 5.67109C25.6519 5.99407 25.8333 6.43213 25.8333 6.88889V22.3889H31V25.8333H25.8333V31H22.3889V25.8333ZM22.3889 22.3889V8.61111H8.61111V22.3889H22.3889Z" fill="#7965F6"/>
-            </svg>
-            <span className="login-brand">Open<strong>Clips</strong></span>
-          </a>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ClippxLogo size={22} color={accent.primary} />
+            <BrandName size={14} color={t.fg} />
+          </Link>
+
 
           {/* Hero text */}
           <div className="login-hero">
@@ -326,7 +326,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="login-footer">© ProductName {new Date().getFullYear()}</div>
+          <div className="login-footer">© clippx {new Date().getFullYear()}</div>
         </div>
 
         {/* ── RIGHT ── */}

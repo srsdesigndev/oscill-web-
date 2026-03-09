@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { t, accent, ProductNameLogo, BrandName } from '@/app/landing/shared'
+import { t, accent, ClippxLogo, BrandName } from '@/app/landing/shared'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const RESOURCES_LINKS = [
@@ -70,7 +70,7 @@ export function ResourcesNav() {
 
         {/* Left — logo → back to home */}
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, marginRight: 40, flexShrink: 0 }}>
-          <ProductNameLogo size={18} color={accent.primary} />
+          <ClippxLogo size={18} color={accent.primary} />
           <BrandName size={12.5} color={t.fg} />
         </Link>
 

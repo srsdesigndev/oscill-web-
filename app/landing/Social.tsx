@@ -19,7 +19,7 @@ export function Extension() {
             Your second brain,<br />built into your browser.
           </h2>
           <p style={{ fontSize: 16, color: t.fgMid, lineHeight: 1.75, fontWeight: 300, marginBottom: 40, maxWidth: 420 }}>
-            Highlight text, images, or entire pages. One click sends it straight to your ProductName project. Never lose a source again.
+            Highlight text, images, or entire pages. One click sends it straight to your clippx project. Never lose a source again.
           </p>
 
           {/* Browser buttons */}
@@ -83,7 +83,7 @@ export function Extension() {
                 </svg>
               </div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: t.fg, fontFamily: "'Michroma',sans-serif" }}>ProductName</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.fg, fontFamily: "'Michroma',sans-serif" }}>clippx</div>
                 <div style={{ fontSize: 10, color: t.fgLow }}>Save to your workspace</div>
               </div>
             </div>

@@ -29,7 +29,7 @@ export function Pricing() {
           Simple pricing.<br />Completely free.
         </h2>
         <p style={{ fontSize: 17, color: t.fgMid, fontWeight: 300, maxWidth: 480, margin: 0, lineHeight: 1.75 }}>
-          ProductName is in early experimental stage. Everything is free while we build and learn together.
+          clippx is in early experimental stage. Everything is free while we build and learn together.
         </p>
       </div>
 
@@ -109,7 +109,7 @@ export function Pricing() {
               Free for Students
             </div>
             <p style={{ fontSize: 14, color: t.fgMid, lineHeight: 1.72, fontWeight: 300, margin: 0 }}>
-              ProductName was built specifically because juggling research across dozens of tabs, apps, and notebooks is exhausting. Students deserve better tools — and they deserve them free.
+              clippx was built specifically because juggling research across dozens of tabs, apps, and notebooks is exhausting. Students deserve better tools — and they deserve them free.
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export function Pricing() {
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: accent.primary, marginBottom: 6 }}>Still in the lab</div>
               <p style={{ fontSize: 13, color: t.fgLow, lineHeight: 1.65, fontWeight: 300, margin: 0 }}>
-                Expect rough edges. Some things will break, some features will shift. But every bug you catch and every idea you share makes ProductName better for everyone.
+                Expect rough edges. Some things will break, some features will shift. But every bug you catch and every idea you share makes clippx better for everyone.
               </p>
             </div>
           </div>

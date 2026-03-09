@@ -6,12 +6,12 @@ import { t, accent } from './shared'
 // ── Data ──────────────────────────────────────────────────────────────────────
 const FAQS = [
   {
-    q: 'What exactly is ProductName?',
-    a: 'ProductName is a browser extension + web app that lets you save anything from the internet — articles, tweets, PDFs, research papers, videos — into organised project workspaces. You can then ask AI questions across everything you\'ve saved.',
+    q: 'What exactly is clippx?',
+    a: 'clippx is a browser extension + web app that lets you save anything from the internet — articles, tweets, PDFs, research papers, videos — into organised project workspaces. You can then ask AI questions across everything you\'ve saved.',
   },
   {
     q: 'How is this different from Pocket or Notion?',
-    a: 'Pocket is a read-later app with no AI. Notion is a blank canvas that requires setup. ProductName is purpose-built for capturing and connecting knowledge — clips land in the right project instantly, and AI understands your entire collection from day one.',
+    a: 'Pocket is a read-later app with no AI. Notion is a blank canvas that requires setup. clippx is purpose-built for capturing and connecting knowledge — clips land in the right project instantly, and AI understands your entire collection from day one.',
   },
   {
     q: 'Is my data private and secure?',
@@ -26,7 +26,7 @@ const FAQS = [
     a: 'The AI answers are grounded strictly in your saved clips — it only surfaces information that exists in your workspace. It won\'t make things up or pull from outside your collection, which dramatically reduces hallucinations.',
   },
   {
-    q: 'Can I use ProductName for free?',
+    q: 'Can I use clippx for free?',
     a: 'Yes. The free plan gives you up to 3 projects, 200 clips, and full AI access. Paid plans unlock unlimited projects, higher clip limits, priority AI, and team collaboration.',
   },
   {
@@ -196,7 +196,7 @@ export function FAQ() {
             margin: '0 auto', maxWidth: 420,
           }}>
             Everything you need to know before getting started. Can't find your answer?{' '}
-            <a href="mailto:hello@ProductName.io" style={{ color: accent.primary, textDecoration: 'none' }}>
+            <a href="mailto:hello@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>
               Email us.
             </a>
           </p>

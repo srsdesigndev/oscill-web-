@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { t, accent, ProductNameLogo, BrandName } from './shared'
+import { t, accent, ClippxLogo, BrandName } from './shared'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const NAV_LINKS = [
@@ -65,7 +65,7 @@ export function Nav() {
       >
         {/* Logo */}
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ProductNameLogo size={22} color={accent.primary} />
+          <ClippxLogo size={22} color={accent.primary} />
           <BrandName size={14} color={t.fg} />
         </Link>
 

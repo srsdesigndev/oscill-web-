@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { t, accent, ProductNameLogo, BrandName } from './shared'
+import { t, accent, ClippxLogo, BrandName } from './shared'
 
 const LINKS = {
   Product:   ['Features', 'How it works', 'Extension', 'Pricing'],
@@ -19,7 +19,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <ProductNameLogo size={20} color={accent.primary} />
+              <ClippxLogo size={20} color={accent.primary} />
               <BrandName size={13} color={t.fg} />
             </Link>
             <p style={{ fontSize: 13, color: t.fgLow, lineHeight: 1.6, fontWeight: 300 }}>
@@ -46,7 +46,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingTop: 24, borderTop: `1px solid ${t.border}` }}>
-          <span style={{ fontSize: 12, color: t.fgLow }}>© ProductName 2026. All rights reserved.</span>
+          <span style={{ fontSize: 12, color: t.fgLow }}>© clippx 2026. All rights reserved.</span>
           <div style={{ display: 'flex', gap: 20 }}>
             {['Twitter / X', 'GitHub', 'Discord'].map(s => (
               <a key={s} href="#" style={{ fontSize: 12, color: t.fgLow, textDecoration: 'none', transition: 'color 0.15s' }}
