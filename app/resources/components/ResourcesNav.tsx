@@ -6,7 +6,6 @@ import { t, accent, ClippxLogo, BrandName } from '@/app/landing/shared'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const RESOURCES_LINKS = [
-  { label: 'Docs',      href: '/resources/docs'      },
   { label: 'Changelog', href: '/resources/changelog' },
   { label: 'Status',    href: '/resources/status'    },
   { label: 'Blogs',      href: '/resources/blogs'      },

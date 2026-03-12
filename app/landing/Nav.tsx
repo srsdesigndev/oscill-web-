@@ -55,6 +55,7 @@ const CSS = `
 export function Nav() {
   return (
     <>
+
       <style>{CSS}</style>
       <nav
         className="glass-nav"
