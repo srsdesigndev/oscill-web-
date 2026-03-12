@@ -1,63 +1,16 @@
 'use client'
 
-import { accent } from '@/app/dashboard/DShared'
-import { Footer } from '@/app/landing/Footer'
-import { t } from '@/app/landing/shared'
+import { useState, useRef, useEffect, ReactElement } from 'react'
 import Link from 'next/link'
+import { accent } from '@/app/dashboard/DShared'
+import { t } from '@/app/landing/shared'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Section {
   id: string
   title: string
-  content: React.ReactNode
+  content: ReactElement
 }
-
-// ── CSS ───────────────────────────────────────────────────────────────────────
-const CSS = `
-  @keyframes pp-fade-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .pp-fade-1 { animation: pp-fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 0.05s both; }
-  .pp-fade-2 { animation: pp-fade-up 0.65s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
-  .pp-fade-3 { animation: pp-fade-up 0.65s cubic-bezier(0.22,1,0.36,1) 0.20s both; }
-
-  @keyframes eyebrow-dot {
-    0%,100% { box-shadow: 0 0 0px rgba(121,101,246,0.5); }
-    50%      { box-shadow: 0 0 8px rgba(121,101,246,0.9), 0 0 14px rgba(121,101,246,0.4); }
-  }
-  .eyebrow-dot { animation: eyebrow-dot 2.4s ease-in-out infinite; }
-
-  .pp-section {
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 40px 0;
-  }
-  .pp-section:last-of-type { border-bottom: none; }
-
-  .pp-toc-link {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.45);
-    text-decoration: none;
-    padding: 6px 0;
-    border-left: 2px solid transparent;
-    padding-left: 14px;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .pp-toc-link:hover {
-    color: rgba(255,255,255,0.85);
-    border-left-color: rgba(121,101,246,0.6);
-  }
-
-  .pp-highlight {
-    background: rgba(121,101,246,0.1);
-    border: 1px solid rgba(121,101,246,0.2);
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin: 20px 0 0;
-  }
-`
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const SECTIONS: Section[] = [
@@ -66,8 +19,8 @@ const SECTIONS: Section[] = [
     title: 'Overview',
     content: (
       <>
-        <p>clippx is a browser extension and web app that lets you clip content from the internet — articles, links, text, and images — and organise it into project workspaces. You can write notes and use AI to ask questions across your saved clips.</p>
-        <p style={{ marginTop: 16 }}>This Privacy Policy explains what data we collect when you use clippx, how we store it, and what control you have over it. We have written it to be direct and specific, not vague. If something is unclear, email us at <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a>.</p>
+        <p>clippx is a browser extension and web app that lets you clip content from the internet — articles, links, text, and images — and organise it into project workspaces. You can write notes alongside your clips and use AI to ask questions across everything you have saved.</p>
+        <p style={{ marginTop: 16 }}>This Privacy Policy explains what data we collect when you use clippx, how we store it, and what control you have over it. It is written to be direct and specific. If anything is unclear, email us at <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a>.</p>
       </>
     ),
   },
@@ -77,12 +30,12 @@ const SECTIONS: Section[] = [
     content: (
       <>
         <p>We only collect what is necessary for clippx to work. Specifically:</p>
-        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Your email address.</strong> Used for login only. We send you a magic link to verify your identity — no password is stored.</li>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Your clips.</strong> The content you save via the browser extension or manually — text, URLs, images, and any associated page metadata (title, source URL).</li>
+        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Your email address.</strong> Used for login only. We send you a magic link to verify your identity — no password is ever stored.</li>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Your clips.</strong> The content you save via the browser extension — text, URLs, images, and associated page metadata (title, source URL).</li>
           <li><strong style={{ color: '#fff', fontWeight: 600 }}>Your notes.</strong> Any notes you write inside clippx projects.</li>
           <li><strong style={{ color: '#fff', fontWeight: 600 }}>Your projects.</strong> Project names, structure, and the clips they contain.</li>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Basic usage data.</strong> Anonymous, aggregate information about how features are used (e.g. how often AI Q&A is triggered). This contains no personal identifiers and is used only to improve the product.</li>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Basic usage data.</strong> Anonymous, aggregate information about how features are used — no personal identifiers, used only to improve the product.</li>
         </ul>
         <p style={{ marginTop: 16 }}>We do not collect your browsing history. The extension only captures content when you explicitly trigger a clip action.</p>
       </>
@@ -94,9 +47,9 @@ const SECTIONS: Section[] = [
     content: (
       <>
         <p>Your data is used for one purpose: to make clippx work for you.</p>
-        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <li>Your email is used to authenticate you and send login links. We do not send marketing emails unless you explicitly opt in.</li>
-          <li>Your clips and notes are used to power the workspace, search, and AI Q&A features. The AI only has access to clips you select or that belong to the active project.</li>
+          <li>Your clips and notes power the workspace, search, and AI Q&amp;A features. The AI only has access to clips you select or that belong to the active project.</li>
           <li>Usage data is used in aggregate to understand which features are useful and which need work.</li>
         </ul>
         <p style={{ marginTop: 16 }}>We do not use your data to train AI models. We do not sell your data. We do not share your data with third parties for advertising or any commercial purpose.</p>
@@ -108,13 +61,13 @@ const SECTIONS: Section[] = [
     title: 'Third-party services',
     content: (
       <>
-        <p>clippx uses a small number of third-party infrastructure providers to operate. These are processors, not data controllers — they act on our instructions and cannot use your data for their own purposes.</p>
-        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <p>clippx uses a small number of third-party infrastructure providers to operate. These are processors — they act on our instructions and cannot use your data for their own purposes.</p>
+        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <li><strong style={{ color: '#fff', fontWeight: 600 }}>Database &amp; storage.</strong> Your clips, notes, and account data are stored in a managed cloud database. Data is encrypted at rest and in transit.</li>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>AI inference.</strong> When you use the AI Q&A feature, the selected clip content is sent to an AI model provider to generate a response. This content is not retained or used for training by the provider under our agreement.</li>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Email delivery.</strong> Login link emails are sent via a transactional email provider. Your email address is shared with this provider for delivery purposes only.</li>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>AI inference.</strong> When you use AI Q&amp;A, the selected clip content is sent to a model provider to generate a response. It is not retained or used for training under our agreement.</li>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Email delivery.</strong> Login links are sent via a transactional email provider. Your email is shared only for delivery.</li>
         </ul>
-        <p style={{ marginTop: 16 }}>Your data is never sold, licensed, or shared with advertisers, data brokers, or any party beyond the infrastructure providers listed above.</p>
+        <p style={{ marginTop: 16 }}>Your data is never sold, licensed, or shared beyond the infrastructure providers listed above.</p>
       </>
     ),
   },
@@ -122,7 +75,7 @@ const SECTIONS: Section[] = [
     id: 'login',
     title: 'Authentication',
     content: (
-      <p>clippx uses email magic links for login. When you enter your email, we send a single-use verification link. Clicking it signs you in. We do not store passwords. The link expires after 15 minutes. We do not store your email beyond what is needed to maintain your account and send you login links.</p>
+      <p>clippx uses email magic links for login. When you enter your email, we send a single-use verification link. Clicking it signs you in — no password is ever created or stored. The link expires after 15 minutes.</p>
     ),
   },
   {
@@ -131,14 +84,14 @@ const SECTIONS: Section[] = [
     content: (
       <>
         <p>You are in full control of your data:</p>
-        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <ul style={{ marginTop: 16, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <li><strong style={{ color: '#fff', fontWeight: 600 }}>Delete individual clips or notes</strong> at any time from within the app. Deletion is immediate and permanent.</li>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Delete your entire account</strong> from account settings. This permanently deletes all your clips, notes, projects, and account information from our systems. There is no recovery after deletion.</li>
-          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Export your data</strong> (coming soon) — we are building a full data export feature so you can take your clips and notes with you at any time.</li>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Delete your entire account</strong> from account settings. This permanently removes all clips, notes, projects, and your email from our systems. There is no recovery.</li>
+          <li><strong style={{ color: '#fff', fontWeight: 600 }}>Export your data</strong> (coming soon) — a full export feature so you can take everything with you at any time.</li>
         </ul>
-        <div className="pp-highlight">
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
-            To delete your account: go to <strong style={{ color: '#fff' }}>Settings → Account → Delete account</strong>. All data is permanently erased. If you have trouble, email <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a> and we will delete it manually within 48 hours.
+        <div style={{ background: 'rgba(121,101,246,0.08)', border: '1px solid rgba(121,101,246,0.2)', borderRadius: 12, padding: '16px 20px', marginTop: 20 }}>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
+            To delete your account: <strong style={{ color: '#fff' }}>Settings → Account → Delete account.</strong> All data is permanently erased. Need help? Email <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a> and we will delete everything within 48 hours.
           </p>
         </div>
       </>
@@ -148,89 +101,291 @@ const SECTIONS: Section[] = [
     id: 'retention',
     title: 'Data retention',
     content: (
-      <p>Your data is retained for as long as your account exists. When you delete your account, all associated data — clips, notes, projects, email address — is permanently deleted from our systems and backups within 30 days. We do not retain ghost copies of deleted accounts.</p>
+      <p>Your data is retained for as long as your account exists. When you delete your account, all associated data — clips, notes, projects, email address — is permanently removed from our systems and backups within 30 days. We do not retain ghost copies of deleted accounts.</p>
     ),
   },
   {
     id: 'security',
     title: 'Security',
     content: (
-      <p>All data is encrypted in transit (TLS) and at rest. We use industry-standard access controls and do not expose your data to the public internet. We are a small team in early access — if you discover a security issue, please disclose it responsibly at <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a>.</p>
+      <p>All data is encrypted in transit (TLS) and at rest. We use industry-standard access controls. If you discover a security issue, please disclose it responsibly at <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a>.</p>
     ),
   },
   {
     id: 'changes',
     title: 'Changes to this policy',
     content: (
-      <p>If we make material changes to this policy, we will notify you by email before the changes take effect. The date at the top of this page reflects the most recent update. Continued use of clippx after a policy change constitutes acceptance of the updated terms.</p>
+      <p>If we make material changes we will notify you by email before they take effect. The date at the top of this page reflects the most recent update. Continued use of clippx after a change constitutes acceptance of the updated policy.</p>
     ),
   },
   {
     id: 'contact',
     title: 'Contact',
     content: (
-      <p>Questions, requests, or concerns about your data: <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a>. We aim to respond within 2 business days.</p>
+      <p>Questions or concerns about your data: <a href="mailto:privacy@clippx.io" style={{ color: accent.primary, textDecoration: 'none' }}>privacy@clippx.io</a>. We aim to respond within 2 business days.</p>
     ),
   },
 ]
 
+// ── CSS ───────────────────────────────────────────────────────────────────────
+const CSS = `
+  /* Reset stacking context */
+  .pp-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: #0a0a0f;
+    color: #fff;
+  }
+
+  /* ── Navbar ── */
+  .pp-nav {
+    flex-shrink: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+  }
+
+  .pp-nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: '-0.3px';
+  }
+
+  .pp-nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .pp-nav-back:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* ── Shell: sidebar + content ── */
+  .pp-shell {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .pp-sidebar {
+    width: 260px;
+    min-width: 260px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.01);
+    padding: 36px 16px 40px;
+    scrollbar-width: none;
+  }
+  .pp-sidebar::-webkit-scrollbar { display: none; }
+
+  /* ── TOC links ── */
+  .pp-toc-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.4);
+    padding: 8px 14px;
+    border-radius: 8px;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pp-toc-btn:hover {
+    color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.04);
+  }
+  .pp-toc-btn.active {
+    color: #fff;
+    background: rgba(121,101,246,0.1);
+    border-left-color: #7965F6;
+  }
+
+  /* ── Scrollable content ── */
+  .pp-content {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+  .pp-content::-webkit-scrollbar { width: 4px; }
+  .pp-content::-webkit-scrollbar-track { background: transparent; }
+  .pp-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+  /* ── Section ── */
+  .pp-section {
+    padding: 44px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .pp-section:last-of-type { border-bottom: none; padding-bottom: 80px; }
+
+  @keyframes eyebrow-dot {
+    0%,100% { box-shadow: 0 0 0px  rgba(121,101,246,0.5); }
+    50%      { box-shadow: 0 0 8px  rgba(121,101,246,0.9), 0 0 14px rgba(121,101,246,0.4); }
+  }
+  .eyebrow-dot { animation: eyebrow-dot 2.4s ease-in-out infinite; }
+
+  /* ── Mobile ── */
+  @media (max-width: 680px) {
+    .pp-root { height: auto; overflow: visible; }
+    .pp-shell { flex-direction: column; overflow: visible; }
+    .pp-sidebar { width: 100%; min-width: unset; height: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 16px; flex-direction: row; flex-wrap: wrap; gap: 4px; }
+    .pp-content { height: auto; overflow: visible; }
+  }
+`
+
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function PrivacyPage(): React.ReactElement {
+export default function PrivacyPage(): ReactElement {
+  const [activeId, setActiveId] = useState<string>(SECTIONS[0].id)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  // Track which section is in view while scrolling
+  useEffect(() => {
+    const el = contentRef.current
+    if (!el) return
+
+    const handler = () => {
+      let current = SECTIONS[0].id
+      for (const s of SECTIONS) {
+        const ref = sectionRefs.current[s.id]
+        if (ref && ref.offsetTop - el.scrollTop <= 120) {
+          current = s.id
+        }
+      }
+      setActiveId(current)
+    }
+
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
+  }, [])
+
+  const scrollTo = (id: string) => {
+    const ref = sectionRefs.current[id]
+    const el  = contentRef.current
+    if (!ref || !el) return
+    el.scrollTo({ top: ref.offsetTop - 32, behavior: 'smooth' })
+    setActiveId(id)
+  }
+
   return (
-    <>
+    <div className="pp-root">
       <style>{CSS}</style>
 
-      {/* Hero */}
-      <section style={{ maxWidth: 700, margin: '0 auto', padding: '80px 40px 64px', textAlign: 'center' }}>
-        <div className="pp-fade-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', color: accent.primary, background: 'rgba(121,101,246,0.1)', border: '1px solid rgba(121,101,246,0.2)', borderRadius: 100, padding: '5px 14px', marginBottom: 28 }}>
-          <span className="eyebrow-dot" style={{ width: 5, height: 5, borderRadius: '50%', background: accent.primary, display: 'inline-block' }} />
-          Privacy Policy
-        </div>
+      {/* ── Navbar ── */}
+      <nav className="pp-nav">
+        <Link href="/" className="pp-nav-logo">
+          <span className="eyebrow-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: accent.primary, display: 'inline-block', flexShrink: 0 }} />
+          clippx
+        </Link>
+        <Link href="/" className="pp-nav-back">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          Back to home
+        </Link>
+      </nav>
 
-        <h1 className="pp-fade-2" style={{ fontSize: 'clamp(36px,5vw,58px)', fontWeight: 800, letterSpacing: '-2.5px', lineHeight: 1.05, color: '#fff', marginBottom: 20 }}>
-          Your data belongs<br />to you.
-        </h1>
+      {/* ── Shell ── */}
+      <div className="pp-shell">
 
-        <p className="pp-fade-3" style={{ fontSize: 16, color: t.fgMid, lineHeight: 1.75, fontWeight: 300, maxWidth: 460, margin: '0 auto 24px' }}>
-          clippx collects only what it needs to work. Your clips and notes are never sold or shared with third parties. You can delete everything at any time.
-        </p>
+        {/* ── Sidebar ── */}
+        <aside className="pp-sidebar">
+          <div style={{ marginBottom: 28, paddingLeft: 4 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: accent.primary, background: 'rgba(121,101,246,0.1)', border: '1px solid rgba(121,101,246,0.2)', borderRadius: 100, padding: '5px 14px' }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: accent.primary, display: 'inline-block' }} />
+              Privacy Policy
+            </div>
+            <p style={{ fontSize: 12, color: t.fgLow, marginTop: 12, paddingLeft: 2 }}>
+              Last updated March 11, 2026
+            </p>
+          </div>
 
-        <p className="pp-fade-3" style={{ fontSize: 13, color: t.fgLow }}>
-          Last updated: <span style={{ color: 'rgba(255,255,255,0.5)' }}>March 11, 2026</span>
-        </p>
-      </section>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: t.fgLow, marginBottom: 8, paddingLeft: 14 }}>
+            Contents
+          </p>
 
-      {/* Body: TOC + Content */}
-      <section style={{ maxWidth: 960, margin: '0 auto', padding: '0 40px 120px', display: 'grid', gridTemplateColumns: '200px 1fr', gap: 64, alignItems: 'start' }}>
-
-        {/* TOC — sticky sidebar */}
-        <aside style={{ position: 'sticky', top: 32 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: t.fgLow, marginBottom: 14 }}>Contents</p>
-          <nav>
-            {SECTIONS.map((s) => (
-              <a key={s.id} href={`#${s.id}`} className="pp-toc-link">{s.title}</a>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {SECTIONS.map(s => (
+              <button
+                key={s.id}
+                className={`pp-toc-btn${activeId === s.id ? ' active' : ''}`}
+                onClick={() => scrollTo(s.id)}
+              >
+                {s.title}
+              </button>
             ))}
-          </nav>
+          </div>
 
-          <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <p style={{ fontSize: 12, color: t.fgLow, lineHeight: 1.6 }}>Also see</p>
-            <Link href="/terms" style={{ display: 'block', marginTop: 8, fontSize: 13, color: accent.primary, textDecoration: 'none', fontWeight: 500 }}>Terms of Use →</Link>
+          <div style={{ marginTop: 'auto', paddingTop: 32, paddingLeft: 14 }}>
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 20 }} />
+            <p style={{ fontSize: 12, color: t.fgLow, marginBottom: 8 }}>Also see</p>
+            <Link href="/terms" style={{ display: 'block', fontSize: 13, color: accent.primary, textDecoration: 'none', fontWeight: 500 }}>
+              Terms of Use →
+            </Link>
           </div>
         </aside>
 
-        {/* Sections */}
-        <article style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8 }}>
-          {SECTIONS.map((s) => (
-            <div key={s.id} id={s.id} className="pp-section">
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', marginBottom: 16 }}>
-                {s.title}
-              </h2>
-              {s.content}
-            </div>
-          ))}
-        </article>
-      </section>
-      <Footer />
-    </>
+        {/* ── Content ── */}
+        <div ref={contentRef} className="pp-content">
+          <div style={{ padding: '48px 64px 0' }}>
+
+            {/* Sections */}
+            <article style={{ fontSize: 15, color: 'rgba(255,255,255,0.62)', lineHeight: 1.85 }}>
+              {SECTIONS.map(s => (
+                <div
+                  key={s.id}
+                  id={s.id}
+                  className="pp-section"
+                  ref={el => { sectionRefs.current[s.id] = el }}
+                >
+                  <h2 style={{ fontSize: 21, fontWeight: 700, color: '#fff', letterSpacing: '-0.4px', marginBottom: 18 }}>
+                    {s.title}
+                  </h2>
+                  {s.content}
+                </div>
+              ))}
+            </article>
+          </div>
+        </div>
+
+      </div>
+    </div>
   )
 }
